@@ -47,7 +47,7 @@
                             {% if is_granted('ROLE_VOLUNTEER') %}
                                 <li class="nav-item">
                                     <a class="nav-link {{ app.request.attributes.get('_route') starts with 'app_animal_manage' ? 'active' }}"
-                                       href="{{ path('app_animal_manage_index') }}">Gestion</a>
+                                       href="{{ path('app_animal_manage_index') }}">Gérer les animaux</a>
                                 </li>
                                 <li class="nav-item">
                                     <a class="nav-link {{ app.request.attributes.get('_route') starts with 'app_adoption_manage' ? 'active' }}"

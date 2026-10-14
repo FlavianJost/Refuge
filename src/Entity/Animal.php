@@ -46,6 +46,9 @@ class Animal
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $photo = null;
 
+    #[ORM\Column(type: 'integer', options: ['default' => 0])]
+    private int $views = 0;
+
     #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;
 
@@ -58,10 +61,26 @@ class Animal
     #[ORM\OneToMany(targetEntity: AdoptionRequest::class, mappedBy: 'animal', cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $adoptionRequests;
 
+    /**
+     * @var Collection<int, AnimalPhoto>
+     */
+    #[ORM\OneToMany(targetEntity: AnimalPhoto::class, mappedBy: 'animal', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[ORM\OrderBy(['createdAt' => 'ASC', 'id' => 'ASC'])]
+    private Collection $photos;
+
+    /**
+     * @var Collection<int, MedicalRecord>
+     */
+    #[ORM\OneToMany(targetEntity: MedicalRecord::class, mappedBy: 'animal', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[ORM\OrderBy(['date' => 'DESC', 'id' => 'DESC'])]
+    private Collection $medicalRecords;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
         $this->adoptionRequests = new ArrayCollection();
+        $this->photos = new ArrayCollection();
+        $this->medicalRecords = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -165,6 +184,18 @@ class Animal
         return $this;
     }
 
+    public function getViews(): int
+    {
+        return $this->views;
+    }
+
+    public function incrementViews(): static
+    {
+        ++$this->views;
+
+        return $this;
+    }
+
     public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
@@ -216,6 +247,60 @@ class Animal
     {
         if ($this->adoptionRequests->removeElement($request) && $request->getAnimal() === $this) {
             $request->setAnimal(null);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, AnimalPhoto>
+     */
+    public function getPhotos(): Collection
+    {
+        return $this->photos;
+    }
+
+    public function addPhoto(AnimalPhoto $photo): static
+    {
+        if (!$this->photos->contains($photo)) {
+            $this->photos->add($photo);
+            $photo->setAnimal($this);
+        }
+
+        return $this;
+    }
+
+    public function removePhoto(AnimalPhoto $photo): static
+    {
+        if ($this->photos->removeElement($photo) && $photo->getAnimal() === $this) {
+            $photo->setAnimal(null);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, MedicalRecord>
+     */
+    public function getMedicalRecords(): Collection
+    {
+        return $this->medicalRecords;
+    }
+
+    public function addMedicalRecord(MedicalRecord $record): static
+    {
+        if (!$this->medicalRecords->contains($record)) {
+            $this->medicalRecords->add($record);
+            $record->setAnimal($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMedicalRecord(MedicalRecord $record): static
+    {
+        if ($this->medicalRecords->removeElement($record) && $record->getAnimal() === $this) {
+            $record->setAnimal(null);
         }
 
         return $this;

@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Entity\AdoptionRequest;
+use App\Entity\AdoptionRequestEvent;
 use App\Entity\User;
 use App\Enum\AdoptionRequestStatus;
 use App\Enum\AnimalStatus;
@@ -15,13 +16,15 @@ class AdoptionRequestProcessor
     ) {
     }
 
-    public function changeStatus(AdoptionRequest $request, AdoptionRequestStatus $status, User $volunteer): void
+    public function changeStatus(AdoptionRequest $request, AdoptionRequestStatus $status, User $volunteer, ?string $note = null): void
     {
         match ($status) {
             AdoptionRequestStatus::ACCEPTED => $this->accept($request, $volunteer),
             AdoptionRequestStatus::REJECTED => $this->reject($request, $volunteer),
             default => $this->reopen($request, $status),
         };
+
+        $this->recordEvent($request, $status, $volunteer, $note);
 
         $this->entityManager->flush();
     }
@@ -45,6 +48,13 @@ class AdoptionRequestProcessor
                 $other->setStatus(AdoptionRequestStatus::REJECTED)
                     ->setProcessedBy($volunteer)
                     ->touch();
+
+                $this->recordEvent(
+                    $other,
+                    AdoptionRequestStatus::REJECTED,
+                    $volunteer,
+                    'Demande clôturée automatiquement : l\'animal a été adopté via une autre demande.',
+                );
             }
         }
     }
@@ -75,5 +85,15 @@ class AdoptionRequestProcessor
         }
 
         $animal->setStatus(AnimalStatus::AVAILABLE);
+    }
+
+    private function recordEvent(AdoptionRequest $request, AdoptionRequestStatus $status, ?User $author, ?string $note = null): void
+    {
+        $request->addEvent(
+            (new AdoptionRequestEvent())
+                ->setStatus($status)
+                ->setAuthor($author)
+                ->setNote($note),
+        );
     }
 }

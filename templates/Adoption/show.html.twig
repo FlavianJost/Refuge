@@ -45,6 +45,13 @@
                     </div>
                 </div>
 
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body">
+                        <h2 class="h5 mb-3">Questionnaire pré-adoption</h2>
+                        {% include 'Adoption/questionnaire.html.twig' with { adoption_request: adoption_request } only %}
+                    </div>
+                </div>
+
                 {% if adoption_request.message %}
                     <div class="card border-0 shadow-sm">
                         <div class="card-body">
@@ -53,6 +60,13 @@
                         </div>
                     </div>
                 {% endif %}
+
+                <div class="card border-0 shadow-sm mt-4">
+                    <div class="card-body">
+                        <h2 class="h5 mb-3">Parcours de la demande</h2>
+                        {% include 'Adoption/timeline.html.twig' with { events: adoption_request.events } only %}
+                    </div>
+                </div>
             </div>
 
             <div class="col-lg-5">
@@ -72,18 +86,30 @@
                 <div class="card border-0 shadow-sm">
                     <div class="card-body">
                         <h2 class="h5 mb-3">Changer le statut</h2>
-                        <div class="d-flex flex-wrap gap-2">
-                            {% for option in status_choices %}
-                                <form method="post" action="{{ path('app_adoption_manage_status', { id: adoption_request.id }) }}">
-                                    <input type="hidden" name="_token" value="{{ csrf_token('adoption-status-' ~ adoption_request.id) }}">
-                                    <input type="hidden" name="status" value="{{ option.value }}">
-                                    <button type="submit" class="btn btn-sm btn-{{ option.badgeClass() }}"
+                        <form method="post" action="{{ path('app_adoption_manage_status', { id: adoption_request.id }) }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('adoption-status-' ~ adoption_request.id) }}">
+                            <div class="mb-3">
+                                <label class="form-label" for="status-note">Commentaire (facultatif)</label>
+                                <textarea class="form-control" id="status-note" name="note" rows="2"
+                                          placeholder="Ce commentaire sera ajouté au parcours de la demande."></textarea>
+                            </div>
+                            <div class="d-flex flex-wrap gap-2">
+                                {% for option in status_choices %}
+                                    <button type="submit" name="status" value="{{ option.value }}"
+                                            class="btn btn-sm btn-{{ option.badgeClass() }}"
                                             {{ adoption_request.status == option ? 'disabled' }}>
                                         {{ option.label() }}
                                     </button>
-                                </form>
-                            {% endfor %}
-                        </div>
+                                {% endfor %}
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm mt-4">
+                    <div class="card-body">
+                        <h2 class="h5 mb-3">Rendez-vous de visite</h2>
+                        {% include 'Visit/list.html.twig' with { appointments: adoption_request.appointments, is_staff: true } only %}
                     </div>
                 </div>
             </div>

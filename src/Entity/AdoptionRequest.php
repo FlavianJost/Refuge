@@ -3,7 +3,10 @@
 namespace App\Entity;
 
 use App\Enum\AdoptionRequestStatus;
+use App\Enum\HousingType;
 use App\Repository\AdoptionRequestRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -31,6 +34,22 @@ class AdoptionRequest
     #[Assert\Length(max: 2000)]
     private ?string $message = null;
 
+    #[ORM\Column(length: 20, enumType: HousingType::class)]
+    private HousingType $housing = HousingType::OTHER;
+
+    #[ORM\Column(type: 'boolean')]
+    private bool $hasGarden = false;
+
+    #[ORM\Column(type: 'boolean')]
+    private bool $hasOtherPets = false;
+
+    #[ORM\Column(type: 'boolean')]
+    private bool $hasChildren = false;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    #[Assert\Length(max: 2000)]
+    private ?string $experience = null;
+
     #[ORM\Column(length: 30, enumType: AdoptionRequestStatus::class)]
     private AdoptionRequestStatus $status = AdoptionRequestStatus::PENDING;
 
@@ -40,9 +59,25 @@ class AdoptionRequest
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $updatedAt = null;
 
+    /**
+     * @var Collection<int, AdoptionRequestEvent>
+     */
+    #[ORM\OneToMany(targetEntity: AdoptionRequestEvent::class, mappedBy: 'adoptionRequest', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[ORM\OrderBy(['createdAt' => 'ASC', 'id' => 'ASC'])]
+    private Collection $events;
+
+    /**
+     * @var Collection<int, VisitAppointment>
+     */
+    #[ORM\OneToMany(targetEntity: VisitAppointment::class, mappedBy: 'adoptionRequest', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[ORM\OrderBy(['createdAt' => 'DESC', 'id' => 'DESC'])]
+    private Collection $appointments;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
+        $this->events = new ArrayCollection();
+        $this->appointments = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -98,6 +133,66 @@ class AdoptionRequest
         return $this;
     }
 
+    public function getHousing(): HousingType
+    {
+        return $this->housing;
+    }
+
+    public function setHousing(HousingType $housing): static
+    {
+        $this->housing = $housing;
+
+        return $this;
+    }
+
+    public function hasGarden(): bool
+    {
+        return $this->hasGarden;
+    }
+
+    public function setHasGarden(bool $hasGarden): static
+    {
+        $this->hasGarden = $hasGarden;
+
+        return $this;
+    }
+
+    public function hasOtherPets(): bool
+    {
+        return $this->hasOtherPets;
+    }
+
+    public function setHasOtherPets(bool $hasOtherPets): static
+    {
+        $this->hasOtherPets = $hasOtherPets;
+
+        return $this;
+    }
+
+    public function hasChildren(): bool
+    {
+        return $this->hasChildren;
+    }
+
+    public function setHasChildren(bool $hasChildren): static
+    {
+        $this->hasChildren = $hasChildren;
+
+        return $this;
+    }
+
+    public function getExperience(): ?string
+    {
+        return $this->experience;
+    }
+
+    public function setExperience(?string $experience): static
+    {
+        $this->experience = $experience;
+
+        return $this;
+    }
+
     public function getStatus(): AdoptionRequestStatus
     {
         return $this->status;
@@ -130,6 +225,60 @@ class AdoptionRequest
     public function touch(): static
     {
         $this->updatedAt = new \DateTimeImmutable();
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, AdoptionRequestEvent>
+     */
+    public function getEvents(): Collection
+    {
+        return $this->events;
+    }
+
+    public function addEvent(AdoptionRequestEvent $event): static
+    {
+        if (!$this->events->contains($event)) {
+            $this->events->add($event);
+            $event->setAdoptionRequest($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEvent(AdoptionRequestEvent $event): static
+    {
+        if ($this->events->removeElement($event) && $event->getAdoptionRequest() === $this) {
+            $event->setAdoptionRequest(null);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, VisitAppointment>
+     */
+    public function getAppointments(): Collection
+    {
+        return $this->appointments;
+    }
+
+    public function addAppointment(VisitAppointment $appointment): static
+    {
+        if (!$this->appointments->contains($appointment)) {
+            $this->appointments->add($appointment);
+            $appointment->setAdoptionRequest($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAppointment(VisitAppointment $appointment): static
+    {
+        if ($this->appointments->removeElement($appointment) && $appointment->getAdoptionRequest() === $this) {
+            $appointment->setAdoptionRequest(null);
+        }
 
         return $this;
     }

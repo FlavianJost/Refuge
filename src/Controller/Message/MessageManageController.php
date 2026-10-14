@@ -23,7 +23,7 @@ class MessageManageController extends AbstractController
     #[Route('', name: 'index', methods: ['GET'])]
     public function index(ConversationRepository $conversationRepository): Response
     {
-        return $this->render('Message/manage/index.html.twig', [
+        return $this->render('Message/manage.html.twig', [
             'conversations' => $conversationRepository->findAllRecent(),
         ]);
     }
@@ -63,7 +63,7 @@ class MessageManageController extends AbstractController
 
         $this->markStaffConversationAsRead($conversation, $entityManager);
 
-        return $this->render('Message/manage/show.html.twig', [
+        return $this->render('Message/show.html.twig', [
             'conversation' => $conversation,
             'messages' => $messageRepository->findByConversation($conversation),
             'form' => $form,
@@ -85,7 +85,7 @@ class MessageManageController extends AbstractController
         }
 
         return $this->json([
-            'html' => $this->renderView('Message/_messages.html.twig', [
+            'html' => $this->renderView('Message/messages.html.twig', [
                 'messages' => $messages,
                 'viewerIsStaff' => true,
             ]),

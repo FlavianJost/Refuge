@@ -20,6 +20,25 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     }
 
     /**
+     * Indique si au moins un membre du refuge (bénévole ou administrateur) est en ligne.
+     */
+    public function hasOnlineStaff(int $thresholdSeconds = 300): bool
+    {
+        $since = new \DateTimeImmutable(sprintf('-%d seconds', $thresholdSeconds));
+
+        $count = (int) $this->createQueryBuilder('u')
+            ->select('COUNT(u.id)')
+            ->andWhere('u.lastSeenAt >= :since')
+            ->andWhere('u.roles LIKE :role')
+            ->setParameter('since', $since)
+            ->setParameter('role', '%ROLE_VOLUNTEER%')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return $count > 0;
+    }
+
+    /**
      * Used to upgrade (rehash) the user's password automatically over time.
      */
     public function upgradePassword(PasswordAuthenticatedUserInterface $user, string $newHashedPassword): void

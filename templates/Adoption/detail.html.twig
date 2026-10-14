@@ -1,0 +1,82 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Suivi de ma demande - Refuge Animalier{% endblock %}
+
+{% block body %}
+    <div class="container py-5">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ path('app_profile') }}">Mon profil</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Demande #{{ adoption_request.id }}</li>
+            </ol>
+        </nav>
+
+        <div class="d-flex justify-content-between align-items-start mb-4">
+            <h1 class="h2 mb-0">Suivi de ma demande</h1>
+            <span class="badge text-bg-{{ adoption_request.status.badgeClass() }} fs-6">{{ adoption_request.status.label() }}</span>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-5">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body">
+                        <h2 class="h5 mb-3">Animal concerné</h2>
+                        {% if adoption_request.animal %}
+                            <p class="mb-1"><strong>{{ adoption_request.animal.name }}</strong></p>
+                            <p class="text-muted mb-2">{{ adoption_request.animal.species.label() }}</p>
+                            <a href="{{ path('app_animal_show', { slug: adoption_request.animal.slug }) }}" class="btn btn-sm btn-outline-secondary">Voir la fiche</a>
+                        {% else %}
+                            <p class="text-muted mb-0">Animal supprimé.</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body">
+                        <h2 class="h5 mb-3">Questionnaire pré-adoption</h2>
+                        {% include 'Adoption/questionnaire.html.twig' with { adoption_request: adoption_request } only %}
+                    </div>
+                </div>
+
+                {% if adoption_request.message %}
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <h2 class="h5 mb-3">Mon message</h2>
+                            <p class="mb-0">{{ adoption_request.message|nl2br }}</p>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="col-lg-7">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <h2 class="h5 mb-3">Parcours de ma demande</h2>
+                        {% include 'Adoption/timeline.html.twig' with { events: adoption_request.events } only %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm mt-4">
+            <div class="card-body">
+                <h2 class="h5 mb-3">Rendez-vous de visite</h2>
+                {% include 'Visit/list.html.twig' with { appointments: adoption_request.appointments } only %}
+
+                <hr>
+                <h3 class="h6">Proposer une nouvelle date</h3>
+                {{ form_start(visit_form, { action: path('app_visit_request_new', { id: adoption_request.id }) }) }}
+                    <div class="row g-3">
+                        <div class="col-md-5">{{ form_row(visit_form.proposedAt) }}</div>
+                        <div class="col-md-7">{{ form_row(visit_form.note) }}</div>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-2">Proposer ce rendez-vous</button>
+                {{ form_end(visit_form) }}
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <a href="{{ path('app_profile') }}" class="btn btn-link">Retour à mon profil</a>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier un acte médical - Refuge Animalier{% endblock %}
+
+{% block body %}
+    <div class="container py-5">
+        <h1 class="h2 mb-4">Modifier un acte médical — « {{ animal.name }} »</h1>
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                {% include 'Medical/form.html.twig' with {
+                    form: form,
+                    animal: animal,
+                    show_cancel: true,
+                    submit_label: 'Enregistrer les modifications'
+                } only %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

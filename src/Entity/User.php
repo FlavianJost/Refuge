@@ -56,6 +56,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TotpTwo
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $lastLoginAt = null;
 
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $lastSeenAt = null;
+
     /**
      * @var Collection<int, AdoptionRequest>
      */
@@ -75,12 +78,20 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TotpTwo
     #[ORM\OrderBy(['createdAt' => 'DESC'])]
     private Collection $reviews;
 
+    /**
+     * @var Collection<int, LoginRecord>
+     */
+    #[ORM\OneToMany(targetEntity: LoginRecord::class, mappedBy: 'user', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[ORM\OrderBy(['createdAt' => 'DESC', 'id' => 'DESC'])]
+    private Collection $loginRecords;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
         $this->processedRequests = new ArrayCollection();
         $this->adoptionRequests = new ArrayCollection();
         $this->reviews = new ArrayCollection();
+        $this->loginRecords = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -194,6 +205,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TotpTwo
         return $name !== '' ? $name : (string) $this->email;
     }
 
+    public function getInitials(): string
+    {
+        $initials = mb_substr((string) $this->firstName, 0, 1).mb_substr((string) $this->lastName, 0, 1);
+
+        if ('' === $initials) {
+            $initials = mb_substr((string) $this->email, 0, 1);
+        }
+
+        return mb_strtoupper($initials);
+    }
+
     public function __toString(): string
     {
         return $this->getFullName();
@@ -214,6 +236,27 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TotpTwo
         $this->lastLoginAt = $lastLoginAt;
 
         return $this;
+    }
+
+    public function getLastSeenAt(): ?\DateTimeImmutable
+    {
+        return $this->lastSeenAt;
+    }
+
+    public function setLastSeenAt(?\DateTimeImmutable $lastSeenAt): static
+    {
+        $this->lastSeenAt = $lastSeenAt;
+
+        return $this;
+    }
+
+    public function isOnline(int $thresholdSeconds = 300): bool
+    {
+        if (null === $this->lastSeenAt) {
+            return false;
+        }
+
+        return $this->lastSeenAt >= new \DateTimeImmutable(sprintf('-%d seconds', $thresholdSeconds));
     }
 
     /**
@@ -292,6 +335,33 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TotpTwo
     {
         if ($this->processedRequests->removeElement($request) && $request->getProcessedBy() === $this) {
             $request->setProcessedBy(null);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, LoginRecord>
+     */
+    public function getLoginRecords(): Collection
+    {
+        return $this->loginRecords;
+    }
+
+    public function addLoginRecord(LoginRecord $loginRecord): static
+    {
+        if (!$this->loginRecords->contains($loginRecord)) {
+            $this->loginRecords->add($loginRecord);
+            $loginRecord->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLoginRecord(LoginRecord $loginRecord): static
+    {
+        if ($this->loginRecords->removeElement($loginRecord) && $loginRecord->getUser() === $this) {
+            $loginRecord->setUser(null);
         }
 
         return $this;

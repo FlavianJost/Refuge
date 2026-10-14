@@ -1,0 +1,39 @@
+{% if appointments is empty %}
+    <p class="text-muted mb-0">Aucun rendez-vous proposé pour le moment.</p>
+{% else %}
+    <ul class="list-group list-group-flush">
+        {% for appointment in appointments %}
+            <li class="list-group-item px-0">
+                <div class="d-flex justify-content-between align-items-start gap-2">
+                    <div>
+                        <div class="fw-semibold">{{ appointment.proposedAt|date('d/m/Y à H:i') }}</div>
+                        {% if appointment.note %}
+                            <div class="small text-muted">{{ appointment.note|nl2br }}</div>
+                        {% endif %}
+                        {% if appointment.response %}
+                            <div class="small">Réponse de l'équipe : {{ appointment.response|nl2br }}</div>
+                        {% endif %}
+                        {% if appointment.processedBy %}
+                            <div class="small text-muted">Traitée par {{ appointment.processedBy.fullName }}</div>
+                        {% endif %}
+                    </div>
+                    <span class="badge text-bg-{{ appointment.status.badgeClass() }}">{{ appointment.status.label() }}</span>
+                </div>
+
+                {% if is_staff|default(false) and appointment.status.value == 'pending' %}
+                    <form method="post"
+                          action="{{ path('app_adoption_manage_visit_status', { id: appointment.adoptionRequest.id, appointment: appointment.id }) }}"
+                          class="mt-2 d-flex flex-wrap gap-2 align-items-center">
+                        <input type="hidden" name="_token" value="{{ csrf_token('visit-status-' ~ appointment.id) }}">
+                        <div class="flex-grow-1">
+                            <input type="text" name="response" class="form-control form-control-sm"
+                                   placeholder="Réponse à ajouter (facultatif)">
+                        </div>
+                        <button type="submit" name="status" value="confirmed" class="btn btn-sm btn-success">Confirmer</button>
+                        <button type="submit" name="status" value="refused" class="btn btn-sm btn-danger">Refuser</button>
+                    </form>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+{% endif %}

@@ -36,7 +36,8 @@ administrateur).
 - Espace profil : informations du compte, modification des données et photo de profil,
   changement de mot de passe et suivi de ses demandes.
 - Messagerie interne : fil de discussion entre chaque utilisateur et l'équipe du refuge,
-  avec rafraîchissement automatique des nouveaux messages.
+  avec avatars des interlocuteurs, statut en ligne/hors ligne et rafraîchissement automatique
+  des nouveaux messages.
 - Authentification à deux facteurs (TOTP) activable depuis le profil.
 - Avis sur le refuge : consultation publique et dépôt par les utilisateurs connectés.
 - Page de don (démonstration) avec enregistrement des dons en base.
@@ -107,24 +108,32 @@ php bin/console asset-map:compile
 
 ## Modèle de données
 
-L'application s'appuie sur **sept entités Doctrine** :
+L'application s'appuie sur **douze entités Doctrine** :
 
 | Entité | Description | Champs principaux |
 | --- | --- | --- |
 | `User` | Utilisateur de l'application (visiteur, bénévole, administrateur). | email, rôles, mot de passe, prénom, nom, photo, dernière connexion, secret TOTP |
-| `Animal` | Animal accueilli au refuge. | nom, slug, espèce, race, âge, description, statut, photo |
-| `AdoptionRequest` | Demande d'adoption déposée par un utilisateur pour un animal. | animal, utilisateur, message, statut, traitement |
+| `LoginRecord` | Trace d'une connexion réussie (date et adresse IP), affichée dans l'espace utilisateur. | utilisateur, adresse IP, date |
+| `Animal` | Animal accueilli au refuge. | nom, slug, espèce, race, âge, description, statut, photo, nombre de vues |
+| `AnimalPhoto` | Photo supplémentaire rattachée à la galerie d'un animal (la photo principale reste portée par `Animal`). | animal, nom de fichier, date |
+| `MedicalRecord` | Acte médical consigné dans le dossier médical d'un animal (accès réservé à l'équipe). | animal, date, type d'acte, motif, détails, vétérinaire |
+| `AdoptionRequest` | Demande d'adoption déposée par un utilisateur pour un animal. | animal, utilisateur, message, questionnaire pré-adoption, statut, traitement |
+| `AdoptionRequestEvent` | Étape du parcours d'une demande d'adoption (dépôt, prise en charge, acceptation, refus). | demande, statut, commentaire, auteur, date |
+| `VisitAppointment` | Rendez-vous de visite proposé par un utilisateur pour une demande d'adoption, confirmé ou refusé par l'équipe. | demande, date proposée, statut, note, réponse, traitée par |
 | `Donation` | Don effectué via la page de démonstration (paiement simulé). | montant (en centimes), donateur, email, message, statut, date |
 | `Review` | Avis publié par un utilisateur sur le refuge. | utilisateur, note (1 à 5), commentaire, date |
 | `Conversation` | Fil de discussion entre un utilisateur et le refuge (un fil par utilisateur). | utilisateur, compteurs de messages non lus, dates |
 | `Message` | Message publié dans une conversation, par un utilisateur ou un membre du refuge. | conversation, auteur, texte, émis par l'équipe, date |
 
-Quatre énumérations typent les valeurs métier, avec des libellés français :
+Sept énumérations typent les valeurs métier, avec des libellés français :
 
 - `Species` : chien, chat, lapin, oiseau, rongeur, autre.
 - `AnimalStatus` : disponible, en cours d'adoption, adopté.
 - `AdoptionRequestStatus` : nouvelle, en cours de traitement, acceptée, refusée.
 - `DonationStatus` : confirmé, en attente, échoué.
+- `MedicalRecordCategory` : vaccination, traitement, soins, visite vétérinaire, chirurgie, autre.
+- `HousingType` : appartement, maison, autre.
+- `VisitAppointmentStatus` : en attente, confirmé, refusé.
 
 Elles implémentent `TranslatableInterface`, ce qui permet à EasyAdmin d'afficher directement leurs
 libellés français dans les formulaires, les listes et les filtres.
@@ -132,7 +141,13 @@ libellés français dans les formulaires, les listes et les filtres.
 ### Données de démonstration
 
 Le jeu de données (`AppFixtures`) crée des comptes, des animaux (dont deux homonymes pour illustrer
-l'unicité des slugs) et des demandes d'adoption :
+l'unicité des slugs), leurs photos de couverture et de galerie, un compteur de vues, des dossiers
+médicaux, des demandes d'adoption (avec questionnaire, parcours et rendez-vous de visite), un
+historique de connexions et des conversations de messagerie. La couverture et la galerie des animaux
+se renseignent dans le tableau des fixtures : une URL est téléchargée au chargement dans
+`public/uploads/animals/`, ou un simple nom de fichier déjà présent dans ce dossier est utilisé tel quel.
+
+Les comptes disponibles sont :
 
 | Email | Mot de passe | Rôle |
 | --- | --- | --- |
@@ -190,14 +205,17 @@ Le secret est stocké sur l'utilisateur (`totp_secret`, `totp_enabled`), qui imp
 - `GET /animaux` (`app_animal_index`) — liste des animaux avec filtres par **espèce** et
   **situation**. Affiche par défaut les animaux disponibles.
 - `GET /animaux/{slug}` (`app_animal_show`) — fiche détaillée d'un animal, identifiée par un slug
-  unique.
+  unique. Chaque consultation **incrémente un compteur de vues** (`Animal.views`), affiché sur la
+  fiche et dans l'espace de gestion.
 
 Le slug est généré à partir du nom via `Symfony\Component\String\Slugger\SluggerInterface` (service
 `App\Service\AnimalSlugger`). Plusieurs animaux peuvent porter le **même nom** : en cas de doublon,
 un suffixe numérique est ajouté pour garantir l'unicité (`rex`, `rex-2`, `rex-3`, ...).
 
 Ces pages sont accessibles aux visiteurs non authentifiés. Les photographies sont servies depuis
-`public/uploads/animals/`.
+`public/uploads/animals/`. La fiche d'un animal présente une **galerie** : la photo principale
+(`Animal.photo`) suivie des photos supplémentaires de la galerie (entité `AnimalPhoto`), affichées
+dans un carrousel.
 
 ## Demandes d'adoption
 
@@ -207,12 +225,27 @@ Ces pages sont accessibles aux visiteurs non authentifiés. Les photographies so
   accessible depuis la fiche de l'animal. La demande est **réservée aux utilisateurs connectés** :
   un visiteur est redirigé vers la page de connexion. Elle est rattachée au compte de l'utilisateur
   (pas de saisie de coordonnées) et une demande en doublon pour le même animal est refusée.
+  Le formulaire intègre un **questionnaire pré-adoption** (type de logement, jardin, autres animaux,
+  enfants, expérience) en plus du message libre.
+- `GET /profil/adoptions/{id}` (`app_adoption_request_show`) — suivi d'une demande : statut courant,
+  **parcours** complet et **rendez-vous de visite**. Seul le propriétaire de la demande peut y accéder.
+- `POST /profil/adoptions/{id}/rendez-vous` (`app_visit_request_new`) — proposition d'une date de
+  visite depuis cette page de suivi.
+
+Chaque demande possède un **parcours** (entité `AdoptionRequestEvent`) qui enregistre ses étapes
+successives : dépôt par l'utilisateur, puis chaque changement de statut effectué par l'équipe, avec
+la date, l'auteur et un commentaire facultatif. L'utilisateur peut également **proposer un rendez-vous
+de visite** (entité `VisitAppointment`) ; l'équipe le confirme ou le refuse.
 
 ### Côté bénévole (`ROLE_VOLUNTEER`)
 
 - `GET /gestion/demandes` (`app_adoption_manage_index`) — liste des demandes avec filtre par statut.
-- `GET /gestion/demandes/{id}` (`app_adoption_manage_show`) — détail d'une demande.
-- `POST /gestion/demandes/{id}/statut` (`app_adoption_manage_status`) — changement de statut.
+- `GET /gestion/demandes/{id}` (`app_adoption_manage_show`) — détail d'une demande, de son parcours et
+  de ses rendez-vous.
+- `POST /gestion/demandes/{id}/statut` (`app_adoption_manage_status`) — changement de statut, avec un
+  commentaire facultatif ajouté au parcours.
+- `POST /gestion/demandes/{id}/rendez-vous/{appointment}/statut` (`app_adoption_manage_visit_status`) —
+  confirmation ou refus d'un rendez-vous de visite, avec une réponse facultative.
 
 Les transitions sont gérées par le service `App\Service\AdoptionRequestProcessor` :
 
@@ -240,6 +273,14 @@ l'attribut `#[IsGranted]`.
 - `GET|POST /profil/messages` (`app_message_index`) — messagerie avec l'équipe du refuge.
 - `GET|POST /avis/nouveau` (`app_review_new`) et `POST /avis/{id}/supprimer` (`app_review_delete`) —
   dépôt et suppression d'un avis.
+- `GET /profil/export` (`app_profile_export`) — **export RGPD** : téléchargement d'un fichier JSON
+  contenant le profil, les demandes d'adoption (avec parcours et rendez-vous), les avis, les messages
+  et l'historique de connexions.
+- `POST /profil/supprimer` (`app_profile_delete`) — **suppression du compte** (après confirmation du
+  mot de passe), avec effacement en cascade des données associées.
+
+L'espace utilisateur affiche également un **historique des connexions** (entité `LoginRecord`) : les
+dix dernières connexions réussies avec leur date et leur adresse IP.
 
 ## Messagerie
 
@@ -268,6 +309,13 @@ Les échanges sont enregistrés dans les tables `conversation` et `message` (ent
 automatiquement toutes les quelques secondes par un contrôleur Stimulus
 (`assets/controllers/message_poll_controller.js`), ce qui donne une impression de discussion en
 direct, sans WebSocket.
+
+Les interlocuteurs sont identifiés par un **avatar** (photo de profil, à défaut les initiales) et un
+**statut en ligne / hors ligne**. Ce statut s'appuie sur la colonne `last_seen_at` de l'utilisateur,
+mise à jour à chaque requête authentifiée par `src/EventListener/UserActivityListener.php` (au plus
+une fois par minute). Un utilisateur est considéré en ligne s'il a été vu il y a moins de cinq
+minutes ; côté utilisateur, l'équipe du refuge est affichée comme en ligne si au moins un bénévole
+l'est.
 
 ## Avis sur le refuge
 
@@ -306,11 +354,28 @@ Espace réservé aux utilisateurs disposant du rôle `ROLE_VOLUNTEER` (et `ROLE_
 - `GET /gestion/animaux` (`app_animal_manage_index`) — tableau de bord des animaux.
 - `GET|POST /gestion/animaux/nouveau` (`app_animal_manage_new`) — ajout d'un animal.
 - `GET|POST /gestion/animaux/{id}/modifier` (`app_animal_manage_edit`) — édition.
+- `POST /gestion/animaux/{id}/photos/{photo}/supprimer` (`app_animal_manage_delete_photo`) —
+  suppression d'une photo de la galerie.
 - `POST /gestion/animaux/{id}/supprimer` (`app_animal_manage_delete`) — suppression avec jeton CSRF.
 
 L'upload de photo est pris en charge par le service `App\Service\AnimalPhotoUploader` : les fichiers
-(JPEG, PNG ou WebP, 4 Mo max) sont enregistrés dans `public/uploads/animals/`. La photo précédente
-est supprimée lors d'un remplacement ou de la suppression de l'animal.
+(JPEG, PNG ou WebP, 4 Mo max) sont enregistrés dans `public/uploads/animals/`. La photo principale
+précédente est supprimée lors d'un remplacement. Le formulaire permet également d'**ajouter
+plusieurs photos** à la galerie d'un animal en une seule fois ; chaque photo y est ensuite listée et
+peut être supprimée individuellement.
+
+### Dossier médical
+
+Chaque animal dispose d'un **dossier médical** accessible uniquement à l'équipe (`ROLE_VOLUNTEER`) :
+
+- `GET|POST /gestion/animaux/{id}/medical` (`app_medical_manage_index`) — historique des actes et
+  ajout d'un nouvel acte.
+- `GET|POST /gestion/animaux/{id}/medical/{record}/modifier` (`app_medical_manage_edit`) — édition.
+- `POST /gestion/animaux/{id}/medical/{record}/supprimer` (`app_medical_manage_delete`) — suppression
+  avec jeton CSRF.
+
+Chaque acte est enregistré dans la table `medical_record` (entité `MedicalRecord`) avec sa date, son
+type (`MedicalRecordCategory`), son motif, ses détails et le vétérinaire concerné.
 
 ### Demandes d'adoption et messagerie
 
