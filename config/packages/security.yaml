@@ -36,7 +36,6 @@ security:
         - { path: ^/login, roles: PUBLIC_ACCESS }
         - { path: ^/inscription, roles: PUBLIC_ACCESS }
         - { path: ^/deconnexion, roles: PUBLIC_ACCESS }
-        - { path: '^/animaux/\d+/adopter', roles: ROLE_USER }
         - { path: ^/gestion, roles: ROLE_VOLUNTEER }
         - { path: ^/admin, roles: ROLE_ADMIN }
         - { path: ^/profil, roles: ROLE_USER }
