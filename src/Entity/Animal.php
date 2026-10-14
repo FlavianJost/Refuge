@@ -46,6 +46,9 @@ class Animal
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $photo = null;
 
+    #[ORM\Column(type: 'integer', options: ['default' => 0])]
+    private int $views = 0;
+
     #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;
 
@@ -169,6 +172,18 @@ class Animal
     public function setPhoto(?string $photo): static
     {
         $this->photo = $photo;
+
+        return $this;
+    }
+
+    public function getViews(): int
+    {
+        return $this->views;
+    }
+
+    public function incrementViews(): static
+    {
+        ++$this->views;
 
         return $this;
     }

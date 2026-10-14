@@ -58,6 +58,7 @@
                     <li><strong>Espèce :</strong> {{ animal.species.label() }}</li>
                     {% if animal.breed %}<li><strong>Race :</strong> {{ animal.breed }}</li>{% endif %}
                     {% if animal.age is not null %}<li><strong>Âge :</strong> {{ animal.age }} an{{ animal.age > 1 ? 's' }}</li>{% endif %}
+                    <li><strong>Vues :</strong> {{ animal.views }}</li>
                 </ul>
 
                 {% if animal.description %}

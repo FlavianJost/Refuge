@@ -21,6 +21,7 @@
                             <th>Espèce</th>
                             <th>Situation</th>
                             <th>Âge</th>
+                            <th>Vues</th>
                             <th class="text-end">Actions</th>
                         </tr>
                     </thead>
@@ -42,6 +43,7 @@
                                 <td>{{ animal.species.label() }}</td>
                                 <td><span class="badge text-bg-{{ animal.status.badgeClass() }}">{{ animal.status.label() }}</span></td>
                                 <td>{{ animal.age is not null ? animal.age : '—' }}</td>
+                                <td>{{ animal.views }}</td>
                                 <td class="text-end">
                                     <a href="{{ path('app_animal_show', { slug: animal.slug }) }}" class="btn btn-sm btn-outline-secondary">Voir</a>
                                     <a href="{{ path('app_animal_manage_edit', { id: animal.id }) }}" class="btn btn-sm btn-outline-primary">Modifier</a>

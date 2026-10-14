@@ -112,7 +112,7 @@ L'application s'appuie sur **huit entités Doctrine** :
 | Entité | Description | Champs principaux |
 | --- | --- | --- |
 | `User` | Utilisateur de l'application (visiteur, bénévole, administrateur). | email, rôles, mot de passe, prénom, nom, photo, dernière connexion, secret TOTP |
-| `Animal` | Animal accueilli au refuge. | nom, slug, espèce, race, âge, description, statut, photo |
+| `Animal` | Animal accueilli au refuge. | nom, slug, espèce, race, âge, description, statut, photo, nombre de vues |
 | `AnimalPhoto` | Photo supplémentaire rattachée à la galerie d'un animal (la photo principale reste portée par `Animal`). | animal, nom de fichier, date |
 | `AdoptionRequest` | Demande d'adoption déposée par un utilisateur pour un animal. | animal, utilisateur, message, statut, traitement |
 | `Donation` | Don effectué via la page de démonstration (paiement simulé). | montant (en centimes), donateur, email, message, statut, date |
@@ -191,7 +191,8 @@ Le secret est stocké sur l'utilisateur (`totp_secret`, `totp_enabled`), qui imp
 - `GET /animaux` (`app_animal_index`) — liste des animaux avec filtres par **espèce** et
   **situation**. Affiche par défaut les animaux disponibles.
 - `GET /animaux/{slug}` (`app_animal_show`) — fiche détaillée d'un animal, identifiée par un slug
-  unique.
+  unique. Chaque consultation **incrémente un compteur de vues** (`Animal.views`), affiché sur la
+  fiche et dans l'espace de gestion.
 
 Le slug est généré à partir du nom via `Symfony\Component\String\Slugger\SluggerInterface` (service
 `App\Service\AnimalSlugger`). Plusieurs animaux peuvent porter le **même nom** : en cas de doublon,

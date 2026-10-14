@@ -67,6 +67,7 @@ class AnimalCrudController extends AbstractCrudController
             ->hideOnForm()
             ->setEmptyData('');
         yield TextField::new('slug', 'Slug')->hideOnForm()->setHelp('Généré automatiquement à partir du nom.');
+        yield IntegerField::new('views', 'Vues')->hideOnForm()->setHelp('Nombre de consultations de la fiche.');
         yield DateTimeField::new('createdAt', 'Créé le')->hideOnForm()->setFormat('dd/MM/yyyy HH:mm');
         yield DateTimeField::new('updatedAt', 'Mis à jour le')->hideOnForm()->setFormat('dd/MM/yyyy HH:mm');
     }
