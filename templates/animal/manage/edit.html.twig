@@ -1,0 +1,15 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier {{ animal.name }} - Refuge Animalier{% endblock %}
+
+{% block body %}
+    <div class="container py-5">
+        <h1 class="h2 mb-4">Modifier « {{ animal.name }} »</h1>
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                {% include 'animal/manage/_form.html.twig' with { form: form, animal: animal } only %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

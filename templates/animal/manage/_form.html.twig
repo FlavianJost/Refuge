@@ -1,0 +1,24 @@
+{{ form_start(form) }}
+    <div class="row g-3">
+        <div class="col-md-6">{{ form_row(form.name) }}</div>
+        <div class="col-md-6">{{ form_row(form.species) }}</div>
+        <div class="col-md-6">{{ form_row(form.breed) }}</div>
+        <div class="col-md-6">{{ form_row(form.age) }}</div>
+        <div class="col-md-6">{{ form_row(form.status) }}</div>
+        <div class="col-md-6">
+            {% if animal is defined and animal.photo %}
+                <label class="form-label">Photo actuelle</label>
+                <div class="mb-2">
+                    <img src="/uploads/animals/{{ animal.photo }}" alt="{{ animal.name }}" class="img-thumbnail" style="max-height: 140px;">
+                </div>
+            {% endif %}
+            {{ form_row(form.photoFile) }}
+        </div>
+        <div class="col-12">{{ form_row(form.description) }}</div>
+    </div>
+
+    <div class="mt-4 d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Enregistrer</button>
+        <a href="{{ path('app_animal_manage_index') }}" class="btn btn-link">Annuler</a>
+    </div>
+{{ form_end(form) }}

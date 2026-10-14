@@ -108,6 +108,19 @@ La protection CSRF est **sans état (stateless)** pour les formulaires et l'auth
 Ces pages sont accessibles aux visiteurs non authentifiés. Les photographies sont servies
 depuis `public/uploads/animals/`.
 
+## Gestion des animaux (bénévoles)
+
+Espace réservé aux utilisateurs disposant du rôle `ROLE_VOLUNTEER` (et `ROLE_ADMIN`).
+
+- `GET /gestion/animaux` — tableau de bord des animaux (`app_animal_manage_index`).
+- `GET|POST /gestion/animaux/nouveau` — ajout d'un animal (`app_animal_manage_new`).
+- `GET|POST /gestion/animaux/{id}/modifier` — édition (`app_animal_manage_edit`).
+- `POST /gestion/animaux/{id}/supprimer` — suppression avec jeton CSRF (`app_animal_manage_delete`).
+
+L'upload de photo est pris en charge par le service `App\Service\AnimalPhotoUploader` : les
+fichiers (JPEG, PNG ou WebP, 4 Mo max) sont enregistrés dans `public/uploads/animals/`. La
+photo précédente est supprimée lors d'un remplacement ou de la suppression de l'animal.
+
 ## Configuration
 
 Les variables d'environnement sont définies dans les fichiers `.env` :
@@ -149,9 +162,12 @@ config/            # Configuration Symfony (packages, routes, services)
 migrations/        # Migrations Doctrine
 public/            # Point d'entrée (index.php) et assets compilés (assets/)
 src/
-  Controller/      # Contrôleurs
+  Controller/      # Contrôleurs (organisés par domaine)
   Entity/          # Entités Doctrine
+  Enum/            # Énumérations métier
+  Form/            # Formulaires Symfony
   Repository/      # Repositories Doctrine
+  Service/         # Services applicatifs (upload, etc.)
   DataFixtures/    # Jeu de données de démonstration
 templates/         # Templates Twig (base, partials, pages)
 tests/             # Tests unitaires et fonctionnels
@@ -177,7 +193,7 @@ front sont servis par **AssetMapper** (importmap natif) et le style repose sur *
 - [x] Feature 2 — Modèle de données (User, Animal, AdoptionRequest).
 - [x] Feature 3 — Authentification et gestion des rôles.
 - [x] Feature 4 — Catalogue public des animaux.
-- [ ] Feature 5 — Gestion des animaux (bénévoles).
+- [x] Feature 5 — Gestion des animaux (bénévoles).
 - [ ] Feature 6 — Demandes d'adoption.
 - [ ] Feature 7 — Back-office EasyAdmin.
 - [ ] Feature 8 — Connexion Google (OAuth).
