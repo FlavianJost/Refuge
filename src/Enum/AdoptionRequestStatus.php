@@ -2,7 +2,10 @@
 
 namespace App\Enum;
 
-enum AdoptionRequestStatus: string
+use Symfony\Contracts\Translation\TranslatableInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
+
+enum AdoptionRequestStatus: string implements TranslatableInterface
 {
     case PENDING = 'pending';
     case IN_PROGRESS = 'in_progress';
@@ -27,5 +30,10 @@ enum AdoptionRequestStatus: string
             self::ACCEPTED => 'success',
             self::REJECTED => 'danger',
         };
+    }
+
+    public function trans(TranslatorInterface $translator, ?string $locale = null): string
+    {
+        return $translator->trans($this->label(), [], null, $locale);
     }
 }
