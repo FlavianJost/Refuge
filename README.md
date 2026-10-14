@@ -157,6 +157,25 @@ Les transitions sont gérées par le service `App\Service\AdoptionRequestProcess
 - **Nouvelle / En cours** : la demande est réouverte ; si l'animal n'a plus de demande acceptée,
   il redevient *Disponible*.
 
+## Back-office d'administration (EasyAdmin)
+
+Espace réservé aux utilisateurs disposant du rôle `ROLE_ADMIN`, généré avec **EasyAdmin 5**
+sous le chemin `/admin` (route `admin`, protégée par `access_control` et l'attribut `#[IsGranted]`).
+
+- `/admin` — tableau de bord (nombre d'animaux, de demandes d'adoption et d'utilisateurs).
+- Gestion **des animaux**, **des demandes d'adoption** et **des utilisateurs** via les
+  contrôleurs CRUD d'EasyAdmin.
+
+Le tableau de bord et les contrôleurs CRUD se trouvent dans `src/Controller/Admin/` et
+configurent l'affichage en français (libellés, badges de statut, filtres). Les énumérations
+(`Species`, `AnimalStatus`, `AdoptionRequestStatus`) implémentent
+`Symfony\Contracts\Translation\TranslatableInterface` afin qu'EasyAdmin affiche leurs libellés
+français dans les formulaires, les listes et les filtres.
+
+Le changement de statut d'une demande depuis le back-office réutilise la logique métier du
+service `App\Service\AdoptionRequestProcessor` (statut de l'animal, refus des demandes
+concurrentes), et le slug d'un animal est (re)généré automatiquement à l'enregistrement.
+
 ## Configuration
 
 Les variables d'environnement sont définies dans les fichiers `.env` :
@@ -233,6 +252,6 @@ front sont servis par **AssetMapper** (importmap natif) et le style repose sur *
 - [x] Feature 5 — Gestion des animaux (bénévoles).
 - [x] Feature 6 — Demandes d'adoption.
 - [x] Profil utilisateur.
-- [ ] Feature 7 — Back-office EasyAdmin.
+- [x] Feature 7 — Back-office EasyAdmin.
 - [ ] Feature 8 — Connexion Google (OAuth).
 - [ ] Feature 9 — Tests unitaires et fonctionnels.

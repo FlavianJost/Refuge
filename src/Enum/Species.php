@@ -2,7 +2,10 @@
 
 namespace App\Enum;
 
-enum Species: string
+use Symfony\Contracts\Translation\TranslatableInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
+
+enum Species: string implements TranslatableInterface
 {
     case DOG = 'dog';
     case CAT = 'cat';
@@ -21,5 +24,10 @@ enum Species: string
             self::RODENT => 'Rongeur',
             self::OTHER => 'Autre',
         };
+    }
+
+    public function trans(TranslatorInterface $translator, ?string $locale = null): string
+    {
+        return $translator->trans($this->label(), [], null, $locale);
     }
 }
