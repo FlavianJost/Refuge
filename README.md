@@ -107,7 +107,7 @@ php bin/console asset-map:compile
 
 ## Modèle de données
 
-L'application s'appuie sur **neuf entités Doctrine** :
+L'application s'appuie sur **dix entités Doctrine** :
 
 | Entité | Description | Champs principaux |
 | --- | --- | --- |
@@ -116,6 +116,7 @@ L'application s'appuie sur **neuf entités Doctrine** :
 | `AnimalPhoto` | Photo supplémentaire rattachée à la galerie d'un animal (la photo principale reste portée par `Animal`). | animal, nom de fichier, date |
 | `MedicalRecord` | Acte médical consigné dans le dossier médical d'un animal (accès réservé à l'équipe). | animal, date, type d'acte, motif, détails, vétérinaire |
 | `AdoptionRequest` | Demande d'adoption déposée par un utilisateur pour un animal. | animal, utilisateur, message, statut, traitement |
+| `AdoptionRequestEvent` | Étape du parcours d'une demande d'adoption (dépôt, prise en charge, acceptation, refus). | demande, statut, commentaire, auteur, date |
 | `Donation` | Don effectué via la page de démonstration (paiement simulé). | montant (en centimes), donateur, email, message, statut, date |
 | `Review` | Avis publié par un utilisateur sur le refuge. | utilisateur, note (1 à 5), commentaire, date |
 | `Conversation` | Fil de discussion entre un utilisateur et le refuge (un fil par utilisateur). | utilisateur, compteurs de messages non lus, dates |
@@ -213,12 +214,19 @@ dans un carrousel.
   accessible depuis la fiche de l'animal. La demande est **réservée aux utilisateurs connectés** :
   un visiteur est redirigé vers la page de connexion. Elle est rattachée au compte de l'utilisateur
   (pas de saisie de coordonnées) et une demande en doublon pour le même animal est refusée.
+- `GET /profil/adoptions/{id}` (`app_adoption_request_show`) — suivi d'une demande : statut courant et
+  **parcours** complet. Seul le propriétaire de la demande peut y accéder.
+
+Chaque demande possède un **parcours** (entité `AdoptionRequestEvent`) qui enregistre ses étapes
+successives : dépôt par l'utilisateur, puis chaque changement de statut effectué par l'équipe, avec
+la date, l'auteur et un commentaire facultatif.
 
 ### Côté bénévole (`ROLE_VOLUNTEER`)
 
 - `GET /gestion/demandes` (`app_adoption_manage_index`) — liste des demandes avec filtre par statut.
-- `GET /gestion/demandes/{id}` (`app_adoption_manage_show`) — détail d'une demande.
-- `POST /gestion/demandes/{id}/statut` (`app_adoption_manage_status`) — changement de statut.
+- `GET /gestion/demandes/{id}` (`app_adoption_manage_show`) — détail d'une demande et de son parcours.
+- `POST /gestion/demandes/{id}/statut` (`app_adoption_manage_status`) — changement de statut, avec un
+  commentaire facultatif ajouté au parcours.
 
 Les transitions sont gérées par le service `App\Service\AdoptionRequestProcessor` :
 

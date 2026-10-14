@@ -1,0 +1,58 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Suivi de ma demande - Refuge Animalier{% endblock %}
+
+{% block body %}
+    <div class="container py-5">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ path('app_profile') }}">Mon profil</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Demande #{{ adoption_request.id }}</li>
+            </ol>
+        </nav>
+
+        <div class="d-flex justify-content-between align-items-start mb-4">
+            <h1 class="h2 mb-0">Suivi de ma demande</h1>
+            <span class="badge text-bg-{{ adoption_request.status.badgeClass() }} fs-6">{{ adoption_request.status.label() }}</span>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-5">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body">
+                        <h2 class="h5 mb-3">Animal concerné</h2>
+                        {% if adoption_request.animal %}
+                            <p class="mb-1"><strong>{{ adoption_request.animal.name }}</strong></p>
+                            <p class="text-muted mb-2">{{ adoption_request.animal.species.label() }}</p>
+                            <a href="{{ path('app_animal_show', { slug: adoption_request.animal.slug }) }}" class="btn btn-sm btn-outline-secondary">Voir la fiche</a>
+                        {% else %}
+                            <p class="text-muted mb-0">Animal supprimé.</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if adoption_request.message %}
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <h2 class="h5 mb-3">Mon message</h2>
+                            <p class="mb-0">{{ adoption_request.message|nl2br }}</p>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="col-lg-7">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <h2 class="h5 mb-3">Parcours de ma demande</h2>
+                        {% include 'Adoption/_timeline.html.twig' with { events: adoption_request.events } only %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <a href="{{ path('app_profile') }}" class="btn btn-link">Retour à mon profil</a>
+        </div>
+    </div>
+{% endblock %}

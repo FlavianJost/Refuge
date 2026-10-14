@@ -3,6 +3,7 @@
 namespace App\Controller\Adoptions;
 
 use App\Entity\AdoptionRequest;
+use App\Entity\AdoptionRequestEvent;
 use App\Entity\Animal;
 use App\Entity\User;
 use App\Enum\AdoptionRequestStatus;
@@ -57,6 +58,12 @@ class AdoptionRequestController extends AbstractController
                 return $this->redirectToRoute('app_animal_show', ['slug' => $animal->getSlug()]);
             }
 
+            $adoptionRequest->addEvent(
+                (new AdoptionRequestEvent())
+                    ->setStatus(AdoptionRequestStatus::PENDING)
+                    ->setAuthor($user),
+            );
+
             $entityManager->persist($adoptionRequest);
             $entityManager->flush();
 
@@ -68,6 +75,21 @@ class AdoptionRequestController extends AbstractController
         return $this->render('Adoption/new.html.twig', [
             'animal' => $animal,
             'form' => $form,
+        ]);
+    }
+
+    #[Route('/profil/adoptions/{id}', name: 'app_adoption_request_show', methods: ['GET'], requirements: ['id' => '\d+'])]
+    #[IsGranted('ROLE_USER')]
+    public function show(AdoptionRequest $adoptionRequest): Response
+    {
+        $user = $this->getUser();
+
+        if (!$user instanceof User || $adoptionRequest->getUser() !== $user) {
+            throw $this->createAccessDeniedException();
+        }
+
+        return $this->render('Adoption/detail.html.twig', [
+            'adoption_request' => $adoptionRequest,
         ]);
     }
 }

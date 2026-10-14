@@ -62,7 +62,9 @@ class AdoptionManageController extends AbstractController
             return $this->redirectToRoute('app_adoption_manage_show', ['id' => $adoptionRequest->getId()]);
         }
 
-        $processor->changeStatus($adoptionRequest, $status, $volunteer);
+        $note = trim((string) $request->request->get('note'));
+
+        $processor->changeStatus($adoptionRequest, $status, $volunteer, '' !== $note ? $note : null);
 
         $this->addFlash('success', sprintf('La demande a été marquée « %s ».', $status->label()));
 

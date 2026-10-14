@@ -4,6 +4,8 @@ namespace App\Entity;
 
 use App\Enum\AdoptionRequestStatus;
 use App\Repository\AdoptionRequestRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -40,9 +42,17 @@ class AdoptionRequest
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $updatedAt = null;
 
+    /**
+     * @var Collection<int, AdoptionRequestEvent>
+     */
+    #[ORM\OneToMany(targetEntity: AdoptionRequestEvent::class, mappedBy: 'adoptionRequest', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[ORM\OrderBy(['createdAt' => 'ASC', 'id' => 'ASC'])]
+    private Collection $events;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
+        $this->events = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -130,6 +140,33 @@ class AdoptionRequest
     public function touch(): static
     {
         $this->updatedAt = new \DateTimeImmutable();
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, AdoptionRequestEvent>
+     */
+    public function getEvents(): Collection
+    {
+        return $this->events;
+    }
+
+    public function addEvent(AdoptionRequestEvent $event): static
+    {
+        if (!$this->events->contains($event)) {
+            $this->events->add($event);
+            $event->setAdoptionRequest($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEvent(AdoptionRequestEvent $event): static
+    {
+        if ($this->events->removeElement($event) && $event->getAdoptionRequest() === $this) {
+            $event->setAdoptionRequest(null);
+        }
 
         return $this;
     }

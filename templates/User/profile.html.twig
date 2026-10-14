@@ -96,6 +96,8 @@
                                         <td>{{ request.createdAt|date('d/m/Y') }}</td>
                                         <td>
                                             <a href="{{ path('app_animal_show', { slug: request.animal.slug }) }}">Voir l'animal</a>
+                                            <span class="text-muted">·</span>
+                                            <a href="{{ path('app_adoption_request_show', { id: request.id }) }}">Suivi</a>
                                         </td>
                                     </tr>
                                 {% endfor %}
