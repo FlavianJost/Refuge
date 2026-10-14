@@ -1,0 +1,56 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Demande d'adoption - {{ animal.name }}{% endblock %}
+
+{% block body %}
+    <div class="container py-5">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ path('homepage') }}">Accueil</a></li>
+                <li class="breadcrumb-item"><a href="{{ path('app_animal_index') }}">Les animaux</a></li>
+                <li class="breadcrumb-item"><a href="{{ path('app_animal_show', { id: animal.id }) }}">{{ animal.name }}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Demande d'adoption</li>
+            </ol>
+        </nav>
+
+        <div class="row g-4">
+            <div class="col-lg-5">
+                <div class="card border-0 shadow-sm">
+                    {% if animal.photo %}
+                        <img src="/uploads/animals/{{ animal.photo }}" class="card-img-top" alt="{{ animal.name }}" style="height: 260px; object-fit: cover;">
+                    {% endif %}
+                    <div class="card-body">
+                        <h2 class="h4">{{ animal.name }}</h2>
+                        <p class="text-muted mb-0">
+                            {{ animal.species.label() }}
+                            {%- if animal.breed %} · {{ animal.breed }}{% endif %}
+                            {%- if animal.age is not null %} · {{ animal.age }} an{{ animal.age > 1 ? 's' }}{% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-7">
+                <h1 class="h2 mb-4">Demander l'adoption de {{ animal.name }}</h1>
+
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        {{ form_start(form) }}
+                            {{ form_row(form.applicantName) }}
+                            <div class="row">
+                                <div class="col-md-6">{{ form_row(form.email) }}</div>
+                                <div class="col-md-6">{{ form_row(form.phone) }}</div>
+                            </div>
+                            {{ form_row(form.message) }}
+
+                            <div class="mt-4 d-flex gap-2">
+                                <button type="submit" class="btn btn-primary">Envoyer ma demande</button>
+                                <a href="{{ path('app_animal_show', { id: animal.id }) }}" class="btn btn-link">Annuler</a>
+                            </div>
+                        {{ form_end(form) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,67 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Demandes d'adoption - Refuge Animalier{% endblock %}
+
+{% block body %}
+    <div class="container py-5">
+        <h1 class="h2 mb-4">Demandes d'adoption</h1>
+
+        <form method="get" class="row g-3 align-items-end mb-4">
+            <div class="col-sm-4">
+                <label class="form-label" for="status">Statut</label>
+                <select name="status" id="status" class="form-select">
+                    <option value="">Tous les statuts</option>
+                    {% for option in status_choices %}
+                        <option value="{{ option.value }}" {{ current_status and current_status.value == option.value ? 'selected' }}>
+                            {{ option.label() }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-sm-4 d-flex gap-2">
+                <button class="btn btn-primary" type="submit">Filtrer</button>
+                <a class="btn btn-outline-secondary" href="{{ path('app_adoption_manage_index') }}">Réinitialiser</a>
+            </div>
+        </form>
+
+        {% if requests is empty %}
+            <div class="alert alert-info" role="alert">Aucune demande à afficher.</div>
+        {% else %}
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Animal</th>
+                            <th>Demandeur</th>
+                            <th>Statut</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for adoption_request in requests %}
+                            <tr>
+                                <td>{{ adoption_request.createdAt|date('d/m/Y H:i') }}</td>
+                                <td>
+                                    {% if adoption_request.animal %}
+                                        <a href="{{ path('app_animal_show', { id: adoption_request.animal.id }) }}">{{ adoption_request.animal.name }}</a>
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {{ adoption_request.applicantName }}<br>
+                                    <span class="text-muted small">{{ adoption_request.email }}</span>
+                                </td>
+                                <td><span class="badge text-bg-{{ adoption_request.status.badgeClass() }}">{{ adoption_request.status.label() }}</span></td>
+                                <td class="text-end">
+                                    <a href="{{ path('app_adoption_manage_show', { id: adoption_request.id }) }}" class="btn btn-sm btn-outline-primary">Traiter</a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

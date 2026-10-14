@@ -1,0 +1,89 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Demande de {{ adoption_request.applicantName }} - Refuge Animalier{% endblock %}
+
+{% block body %}
+    <div class="container py-5">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ path('app_adoption_manage_index') }}">Demandes d'adoption</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Demande #{{ adoption_request.id }}</li>
+            </ol>
+        </nav>
+
+        <div class="d-flex justify-content-between align-items-start mb-4">
+            <h1 class="h2 mb-0">Demande de {{ adoption_request.applicantName }}</h1>
+            <span class="badge text-bg-{{ adoption_request.status.badgeClass() }} fs-6">{{ adoption_request.status.label() }}</span>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-7">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body">
+                        <h2 class="h5 mb-3">Coordonnées</h2>
+                        <dl class="row mb-0">
+                            <dt class="col-sm-4">Nom</dt>
+                            <dd class="col-sm-8">{{ adoption_request.applicantName }}</dd>
+                            <dt class="col-sm-4">Email</dt>
+                            <dd class="col-sm-8"><a href="mailto:{{ adoption_request.email }}">{{ adoption_request.email }}</a></dd>
+                            <dt class="col-sm-4">Téléphone</dt>
+                            <dd class="col-sm-8">{{ adoption_request.phone ?: '—' }}</dd>
+                            <dt class="col-sm-4">Reçue le</dt>
+                            <dd class="col-sm-8">{{ adoption_request.createdAt|date('d/m/Y à H:i') }}</dd>
+                            {% if adoption_request.processedAt %}
+                                <dt class="col-sm-4">Traitée le</dt>
+                                <dd class="col-sm-8">{{ adoption_request.processedAt|date('d/m/Y à H:i') }}</dd>
+                            {% endif %}
+                            {% if adoption_request.processedBy %}
+                                <dt class="col-sm-4">Traitée par</dt>
+                                <dd class="col-sm-8">{{ adoption_request.processedBy.fullName }}</dd>
+                            {% endif %}
+                        </dl>
+                    </div>
+                </div>
+
+                {% if adoption_request.message %}
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <h2 class="h5 mb-3">Message</h2>
+                            <p class="mb-0">{{ adoption_request.message|nl2br }}</p>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="col-lg-5">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body">
+                        <h2 class="h5 mb-3">Animal concerné</h2>
+                        {% if adoption_request.animal %}
+                            <p class="mb-1"><strong>{{ adoption_request.animal.name }}</strong></p>
+                            <p class="text-muted mb-2">{{ adoption_request.animal.species.label() }}</p>
+                            <a href="{{ path('app_animal_show', { id: adoption_request.animal.id }) }}" class="btn btn-sm btn-outline-secondary">Voir la fiche</a>
+                        {% else %}
+                            <p class="text-muted mb-0">Animal supprimé.</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <h2 class="h5 mb-3">Changer le statut</h2>
+                        <div class="d-flex flex-wrap gap-2">
+                            {% for option in status_choices %}
+                                <form method="post" action="{{ path('app_adoption_manage_status', { id: adoption_request.id }) }}">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('adoption-status-' ~ adoption_request.id) }}">
+                                    <input type="hidden" name="status" value="{{ option.value }}">
+                                    <button type="submit" class="btn btn-sm btn-{{ option.badgeClass() }}"
+                                            {{ adoption_request.status == option ? 'disabled' }}>
+                                        {{ option.label() }}
+                                    </button>
+                                </form>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

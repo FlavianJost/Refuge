@@ -121,6 +121,28 @@ L'upload de photo est pris en charge par le service `App\Service\AnimalPhotoUplo
 fichiers (JPEG, PNG ou WebP, 4 Mo max) sont enregistrés dans `public/uploads/animals/`. La
 photo précédente est supprimée lors d'un remplacement ou de la suppression de l'animal.
 
+## Demandes d'adoption
+
+### Côté visiteur (public)
+
+- `GET|POST /animaux/{id}/adopter` — formulaire de demande d'adoption (`app_adoption_request_new`),
+  accessible depuis la fiche de l'animal. Les coordonnées sont pré-remplies si l'utilisateur est
+  connecté. Une demande en doublon (même email, même animal) est refusée.
+
+### Côté bénévole (`ROLE_VOLUNTEER`)
+
+- `GET /gestion/demandes` — liste des demandes avec filtre par statut (`app_adoption_manage_index`).
+- `GET /gestion/demandes/{id}` — détail d'une demande (`app_adoption_manage_show`).
+- `POST /gestion/demandes/{id}/statut` — changement de statut (`app_adoption_manage_status`).
+
+Les transitions sont gérées par le service `App\Service\AdoptionRequestProcessor` :
+
+- **Acceptée** : l'animal passe au statut *Adopté* et les autres demandes en cours pour cet animal
+  sont automatiquement refusées.
+- **Refusée** : la demande est clôturée, horodatée et associée au bénévole.
+- **Nouvelle / En cours** : la demande est réouverte ; si l'animal n'a plus de demande acceptée,
+  il redevient *Disponible*.
+
 ## Configuration
 
 Les variables d'environnement sont définies dans les fichiers `.env` :
@@ -194,7 +216,7 @@ front sont servis par **AssetMapper** (importmap natif) et le style repose sur *
 - [x] Feature 3 — Authentification et gestion des rôles.
 - [x] Feature 4 — Catalogue public des animaux.
 - [x] Feature 5 — Gestion des animaux (bénévoles).
-- [ ] Feature 6 — Demandes d'adoption.
+- [x] Feature 6 — Demandes d'adoption.
 - [ ] Feature 7 — Back-office EasyAdmin.
 - [ ] Feature 8 — Connexion Google (OAuth).
 - [ ] Feature 9 — Tests unitaires et fonctionnels.
