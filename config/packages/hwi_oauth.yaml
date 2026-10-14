@@ -1,0 +1,10 @@
+hwi_oauth:
+    # En cas d'échec de l'authentification OAuth, on renvoie vers la page de connexion classique.
+    failed_auth_path: app_login
+
+    resource_owners:
+        google:
+            type: google
+            client_id: '%env(OAUTH_GOOGLE_CLIENT_ID)%'
+            client_secret: '%env(OAUTH_GOOGLE_CLIENT_SECRET)%'
+            scope: 'https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile'
