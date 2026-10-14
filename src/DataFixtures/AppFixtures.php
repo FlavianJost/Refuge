@@ -21,7 +21,6 @@ use App\Enum\VisitAppointmentStatus;
 use App\Service\AnimalSlugger;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class AppFixtures extends Fixture
@@ -29,8 +28,6 @@ class AppFixtures extends Fixture
     public function __construct(
         private readonly UserPasswordHasherInterface $passwordHasher,
         private readonly AnimalSlugger $animalSlugger,
-        #[Autowire('%kernel.project_dir%')]
-        private readonly string $projectDir,
     ) {
     }
 
@@ -48,7 +45,8 @@ class AppFixtures extends Fixture
         $volunteer->setLastSeenAt($now);
         $camille->setLastSeenAt($now);
 
-        $camille->setPhoto($this->generateImage('users/camille.jpg', 200, 200, 13, 110, 253, 'CD'));
+        // Avatar de profil : dépose ton fichier dans public/uploads/users/ et renseigne son nom ici.
+        // $camille->setPhoto('camille.jpg');
 
         $manager->persist($admin);
         $manager->persist($volunteer);
@@ -66,18 +64,20 @@ class AppFixtures extends Fixture
 
         $manager->flush();
 
+        // [nom, espèce, race, âge, description, statut, vues, photo de couverture, photos de galerie]
+        // Renseigne les noms de fichiers que tu déposes dans public/uploads/animals/.
         $animals = [
-            ['Rex', Species::DOG, 'Berger allemand', 4, 'Très affectueux et joueur, il s\'entend bien avec les enfants.', AnimalStatus::AVAILABLE, 128, 3],
-            ['Mimi', Species::CAT, 'Européen', 2, 'Calme et câline, elle adore les siestes au soleil.', AnimalStatus::AVAILABLE, 74, 2],
-            ['Nala', Species::DOG, 'Border collie', 3, 'Énergique, elle a besoin de se dépenser chaque jour.', AnimalStatus::PENDING, 51, 1],
-            ['Biscuit', Species::RABBIT, 'Nain', 1, 'Petit et sociable, parfait pour un premier animal.', AnimalStatus::AVAILABLE, 22, 1],
-            ['Kiwi', Species::BIRD, 'Perruche', 5, 'Bavarde et colorée, elle réclame de l\'attention.', AnimalStatus::ADOPTED, 39, 0],
-            ['Noisette', Species::RODENT, 'Cochon d\'Inde', 2, 'Douce et tranquille, facile à vivre.', AnimalStatus::AVAILABLE, 17, 0],
-            ['Rex', Species::CAT, 'Européen', 1, 'Un second Rex, arrivé au refuge peu après le premier.', AnimalStatus::AVAILABLE, 9, 0],
+            ['Rex', Species::DOG, 'Berger allemand', 4, 'Très affectueux et joueur, il s\'entend bien avec les enfants.', AnimalStatus::AVAILABLE, 128, null, []],
+            ['Mimi', Species::CAT, 'Européen', 2, 'Calme et câline, elle adore les siestes au soleil.', AnimalStatus::AVAILABLE, 74, null, []],
+            ['Nala', Species::DOG, 'Border collie', 3, 'Énergique, elle a besoin de se dépenser chaque jour.', AnimalStatus::PENDING, 51, null, []],
+            ['Biscuit', Species::RABBIT, 'Nain', 1, 'Petit et sociable, parfait pour un premier animal.', AnimalStatus::AVAILABLE, 22, null, []],
+            ['Kiwi', Species::BIRD, 'Perruche', 5, 'Bavarde et colorée, elle réclame de l\'attention.', AnimalStatus::ADOPTED, 39, null, []],
+            ['Noisette', Species::RODENT, 'Cochon d\'Inde', 2, 'Douce et tranquille, facile à vivre.', AnimalStatus::AVAILABLE, 17, null, []],
+            ['Rex', Species::CAT, 'Européen', 1, 'Un second Rex, arrivé au refuge peu après le premier.', AnimalStatus::AVAILABLE, 9, null, []],
         ];
 
         $entities = [];
-        foreach ($animals as $index => [$name, $species, $breed, $age, $description, $status, $views, $extraPhotos]) {
+        foreach ($animals as [$name, $species, $breed, $age, $description, $status, $views, $cover, $gallery]) {
             $animal = (new Animal())
                 ->setName($name)
                 ->setSpecies($species)
@@ -92,19 +92,12 @@ class AppFixtures extends Fixture
 
             $animal->setSlug($this->animalSlugger->generate($animal));
 
-            [$red, $green, $blue] = $this->speciesColor($species);
-
-            // Photo de couverture + photos de galerie (générées à la volée si GD est disponible).
-            $cover = $this->generateImage(sprintf('animals/animal-%d-cover.jpg', $index), 800, 600, $red, $green, $blue, $name);
             if (null !== $cover) {
                 $animal->setPhoto($cover);
             }
 
-            for ($i = 1; $i <= $extraPhotos; ++$i) {
-                $filename = $this->generateImage(sprintf('animals/animal-%d-%d.jpg', $index, $i), 800, 600, $red, $green, $blue, $name.' '.$i);
-                if (null !== $filename) {
-                    $animal->addPhoto((new AnimalPhoto())->setFilename($filename));
-                }
+            foreach ($gallery as $filename) {
+                $animal->addPhoto((new AnimalPhoto())->setFilename($filename));
             }
 
             $manager->persist($animal);
@@ -259,58 +252,5 @@ class AppFixtures extends Fixture
         $user->setPassword($this->passwordHasher->hashPassword($user, 'password'));
 
         return $user;
-    }
-
-    /**
-     * Génère une image JPEG de démonstration dans public/uploads.
-     *
-     * @return string|null le nom du fichier créé, ou null si GD n'est pas disponible
-     */
-    private function generateImage(string $relativePath, int $width, int $height, int $red, int $green, int $blue, string $text): ?string
-    {
-        if (!\extension_loaded('gd')) {
-            return null;
-        }
-
-        $filename = basename($relativePath);
-        $directory = $this->projectDir.'/public/uploads/'.dirname($relativePath);
-
-        if (!is_dir($directory) && !@mkdir($directory, 0775, true) && !is_dir($directory)) {
-            return null;
-        }
-
-        $image = imagecreatetruecolor($width, $height);
-
-        if (false === $image) {
-            return null;
-        }
-
-        $background = imagecolorallocate($image, $red, $green, $blue);
-        imagefilledrectangle($image, 0, 0, $width, $height, $background);
-
-        $textColor = imagecolorallocate($image, 255, 255, 255);
-        $x = (int) (($width - imagefontwidth(5) * \strlen($text)) / 2);
-        $y = (int) ($height / 2) - 8;
-        imagestring($image, 5, max(4, $x), max(4, $y), $text, $textColor);
-
-        $written = imagejpeg($image, $directory.'/'.$filename, 85);
-        imagedestroy($image);
-
-        return $written ? $filename : null;
-    }
-
-    /**
-     * @return array{int, int, int}
-     */
-    private function speciesColor(Species $species): array
-    {
-        return match ($species) {
-            Species::DOG => [255, 193, 7],
-            Species::CAT => [108, 117, 125],
-            Species::RABBIT => [25, 135, 84],
-            Species::BIRD => [13, 202, 240],
-            Species::RODENT => [253, 126, 20],
-            Species::OTHER => [233, 236, 239],
-        };
     }
 }
