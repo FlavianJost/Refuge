@@ -1,0 +1,74 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mon profil{% endblock %}
+
+{% block body %}
+    <div class="container my-5">
+        <h1 class="mb-4">Mon profil</h1>
+
+        {% set role_labels = {'ROLE_ADMIN': 'Administrateur', 'ROLE_VOLUNTEER': 'Bénévole', 'ROLE_USER': 'Utilisateur'} %}
+
+        <div class="row g-4">
+            <div class="col-lg-5">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h2 class="h5 card-title mb-3">{{ user.fullName }}</h2>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item">
+                                <strong>Email :</strong> {{ user.email }}
+                            </li>
+                            <li class="list-group-item">
+                                <strong>Rôles :</strong>
+                                {% for role in user.roles %}
+                                    <span class="badge text-bg-secondary">{{ role_labels[role] ?? role }}</span>
+                                {% endfor %}
+                            </li>
+                            <li class="list-group-item">
+                                <strong>Inscrit le :</strong> {{ user.createdAt|date('d/m/Y') }}
+                            </li>
+                            <li class="list-group-item">
+                                <strong>Dernière connexion :</strong>
+                                {{ user.lastLoginAt ? user.lastLoginAt|date('d/m/Y à H:i') : '—' }}
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-7">
+                <h2 class="h5 mb-3">Mes demandes d'adoption</h2>
+
+                {% if user.adoptionRequests is empty %}
+                    <div class="alert alert-info mb-0">Vous n'avez encore aucune demande d'adoption.</div>
+                {% else %}
+                    <div class="table-responsive">
+                        <table class="table table-striped align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Animal</th>
+                                    <th>Statut</th>
+                                    <th>Demandée le</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for request in user.adoptionRequests %}
+                                    <tr>
+                                        <td>{{ request.animal.name }}</td>
+                                        <td>
+                                            <span class="badge text-bg-{{ request.status.badgeClass }}">{{ request.status.label }}</span>
+                                        </td>
+                                        <td>{{ request.createdAt|date('d/m/Y') }}</td>
+                                        <td>
+                                            <a href="{{ path('app_animal_show', { id: request.animal.id }) }}">Voir l'animal</a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
