@@ -26,6 +26,7 @@ demandes d'adoption et d'organiser les niveaux d'accès (visiteur, bénévole, a
 - Suivi et traitement des demandes d'adoption par les membres.
 - Niveaux d'accès : visiteur, bénévole, administrateur.
 - Page de don (démonstration) avec enregistrement des dons en base.
+- Avis sur le refuge : consultation publique et dépôt d'avis par les utilisateurs connectés.
 - Back-office d'administration (gestion des utilisateurs, supervision).
 
 ## Prérequis
@@ -70,6 +71,7 @@ L'application s'appuie sur trois entités Doctrine :
 | `Animal` | Animal accueilli au refuge. | nom, espèce, race, âge, description, statut, photo |
 | `AdoptionRequest` | Demande d'adoption déposée par un utilisateur pour un animal. | animal, utilisateur, message, statut, traitement |
 | `Donation` | Don effectué via la page de démonstration (paiement simulé). | montant (en centimes), donateur, email, message, statut, date |
+| `Review` | Avis publié par un utilisateur sur le refuge. | utilisateur, note (1 à 5), commentaire, date |
 
 Deux énumérations typent les états : `AnimalStatus` (disponible, en cours d'adoption,
 adopté) et `AdoptionRequestStatus` (nouvelle, en cours, acceptée, refusée). Les dons
@@ -166,10 +168,10 @@ Les transitions sont gérées par le service `App\Service\AdoptionRequestProcess
 Espace réservé aux utilisateurs disposant du rôle `ROLE_ADMIN`, généré avec **EasyAdmin 5**
 sous le chemin `/admin` (route `admin`, protégée par `access_control` et l'attribut `#[IsGranted]`).
 
-- `/admin` — tableau de bord (nombre d'animaux, de demandes d'adoption et d'utilisateurs, ainsi que
-  le nombre et le total des dons).
-- Gestion **des animaux**, **des demandes d'adoption**, **des dons** et **des utilisateurs** via les
-  contrôleurs CRUD d'EasyAdmin.
+- `/admin` — tableau de bord (nombre d'animaux, de demandes d'adoption et d'utilisateurs, nombre et
+  total des dons, nombre d'avis).
+- Gestion **des animaux**, **des demandes d'adoption**, **des dons**, **des avis** et **des
+  utilisateurs** via les contrôleurs CRUD d'EasyAdmin.
 
 Le tableau de bord et les contrôleurs CRUD se trouvent dans `src/Controller/Admin/` et
 configurent l'affichage en français (libellés, badges de statut, filtres). Les énumérations
@@ -187,8 +189,8 @@ Espace personnel des utilisateurs connectés (`ROLE_USER`), protégé par `acces
 l'attribut `#[IsGranted]`.
 
 - `/profil` (route `app_profile`) — affiche toutes les informations du compte (nom, email, rôles,
-  date d'inscription, dernière connexion, nombre de demandes) ainsi que le suivi de ses demandes
-  d'adoption.
+  date d'inscription, dernière connexion, nombre de demandes), le suivi de ses demandes
+  d'adoption ainsi que ses avis.
 - `/profil/modifier` (route `app_profile_edit`) — permet de modifier le prénom, le nom et l'adresse
   email, et d'ajouter ou remplacer une **photo de profil** (JPEG, PNG ou WebP, 4 Mo max). Les photos
   sont stockées dans `public/uploads/users/` (répertoire non versionné) via le service
@@ -207,6 +209,20 @@ Page publique de soutien au refuge :
 Chaque don valide est enregistré dans la table `donation` (entité `Donation`) avec son montant
 stocké en **centimes** et le statut `DonationStatus::PAID`. Les dons sont consultables et leur
 total est affiché dans le back-office (voir la section suivante).
+
+## Avis sur le refuge
+
+Avis généraux portant sur le refuge (et non sur un animal en particulier).
+
+- `GET /avis` (route `app_review_index`) — page **publique** listant les avis, avec la note moyenne
+  et le nombre d'avis. Un aperçu des derniers avis est également affiché sur la page d'accueil.
+- `GET|POST /avis/nouveau` (route `app_review_new`) — dépôt d'un avis (note de 1 à 5 et
+  commentaire), réservé aux utilisateurs connectés (`ROLE_USER`). Les avis sont **publiés
+  immédiatement** : il n'y a pas de modération préalable.
+- `POST /avis/{id}/supprimer` (route `app_review_delete`) — suppression d'un avis par son auteur
+  (ou par un administrateur), protégée par un jeton CSRF.
+
+Les avis d'un utilisateur sont également visibles dans la section « Mes avis » de son profil.
 
 ## Configuration
 
@@ -314,3 +330,4 @@ front sont servis par **AssetMapper** (importmap natif) et le style repose sur *
 - [ ] Connexion Google (OAuth) — retirée de cette version, à réintroduire ultérieurement.
 - [x] Feature 9 — Tests unitaires et fonctionnels.
 - [x] Page de don (démonstration) et suivi des dons dans le back-office.
+- [x] Avis généraux sur le refuge (page publique, dépôt par les utilisateurs, modération en back-office).

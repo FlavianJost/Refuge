@@ -32,6 +32,14 @@
                             <a class="nav-link {{ app.request.attributes.get('_route') starts with 'app_animal' ? 'active' }}"
                                href="{{ path('app_animal_index') }}">Les animaux</a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ app.request.attributes.get('_route') starts with 'app_review' ? 'active' }}"
+                               href="{{ path('app_review_index') }}">Avis</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ app.request.attributes.get('_route') starts with 'app_donation' ? 'active' }}"
+                               href="{{ path('app_donation_new') }}">Faire un don</a>
+                        </li>
                     </ul>
 
                     <ul class="navbar-nav ms-auto align-items-lg-center">

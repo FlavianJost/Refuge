@@ -59,11 +59,19 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: AdoptionRequest::class, mappedBy: 'user')]
     private Collection $adoptionRequests;
 
+    /**
+     * @var Collection<int, Review>
+     */
+    #[ORM\OneToMany(targetEntity: Review::class, mappedBy: 'user')]
+    #[ORM\OrderBy(['createdAt' => 'DESC'])]
+    private Collection $reviews;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
         $this->processedRequests = new ArrayCollection();
         $this->adoptionRequests = new ArrayCollection();
+        $this->reviews = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -221,6 +229,33 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         if ($this->adoptionRequests->removeElement($adoptionRequest) && $adoptionRequest->getUser() === $this) {
             $adoptionRequest->setUser(null);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Review>
+     */
+    public function getReviews(): Collection
+    {
+        return $this->reviews;
+    }
+
+    public function addReview(Review $review): static
+    {
+        if (!$this->reviews->contains($review)) {
+            $this->reviews->add($review);
+            $review->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReview(Review $review): static
+    {
+        if ($this->reviews->removeElement($review) && $review->getUser() === $this) {
+            $review->setUser(null);
         }
 
         return $this;
