@@ -1,3 +1,38 @@
+:root {
+    --refuge-primary: #2f855a;
+    --refuge-primary-dark: #276749;
+    --refuge-accent: #f6ad55;
+}
+
 body {
-    background-color: skyblue;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.navbar-brand {
+    letter-spacing: 0.02em;
+}
+
+.hero {
+    background: linear-gradient(135deg, var(--refuge-primary) 0%, var(--refuge-primary-dark) 100%);
+}
+
+.hero .display-4 {
+    letter-spacing: -0.02em;
+}
+
+.card {
+    border-radius: 0.75rem;
+}
+
+.btn-primary {
+    --bs-btn-bg: var(--refuge-primary);
+    --bs-btn-border-color: var(--refuge-primary);
+    --bs-btn-hover-bg: var(--refuge-primary-dark);
+    --bs-btn-hover-border-color: var(--refuge-primary-dark);
+    --bs-btn-active-bg: var(--refuge-primary-dark);
+    --bs-btn-active-border-color: var(--refuge-primary-dark);
+}
+
+a {
+    text-decoration: none;
 }

@@ -2,19 +2,15 @@
 
 namespace App\Controller;
 
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\Routing\Attribute\Route;
-use Twig\Environment;
 
-#[AsController]
-#[Route(path: '/', name: 'homepage', methods: ['GET'])]
-class HomeController
+class HomeController extends AbstractController
 {
-    public function __invoke(Environment $twig) : Response
+    #[Route('/', name: 'homepage', methods: ['GET'])]
+    public function index(): Response
     {
-        return new Response($twig->render('home.html.twig', [
-
-        ]), Response::HTTP_OK);
+        return $this->render('home.html.twig');
     }
 }
