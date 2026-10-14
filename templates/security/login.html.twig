@@ -1,0 +1,48 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Connexion - Refuge Animalier{% endblock %}
+
+{% block body %}
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4 p-md-5">
+                        <h1 class="h3 mb-4 text-center">Connexion</h1>
+
+                        {% if error %}
+                            <div class="alert alert-danger" role="alert">
+                                {{ error.messageKey|trans(error.messageData, 'security') }}
+                            </div>
+                        {% endif %}
+
+                        <form method="post">
+                            <div class="mb-3">
+                                <label for="inputEmail" class="form-label">Adresse email</label>
+                                <input type="email" value="{{ last_username }}" name="_username" id="inputEmail"
+                                       class="form-control" autocomplete="email" required autofocus>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="inputPassword" class="form-label">Mot de passe</label>
+                                <input type="password" name="_password" id="inputPassword" class="form-control"
+                                       autocomplete="current-password" required>
+                            </div>
+
+                            <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+                            <div class="d-grid">
+                                <button class="btn btn-primary btn-lg" type="submit">Se connecter</button>
+                            </div>
+                        </form>
+
+                        <p class="text-center text-muted mt-4 mb-0">
+                            Pas encore de compte ?
+                            <a href="{{ path('app_register') }}">Créer un compte</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

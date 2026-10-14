@@ -79,6 +79,26 @@ Le jeu de données (`AppFixtures`) crée deux comptes et plusieurs animaux :
 | `admin@refuge.test` | `password` | Administrateur |
 | `benevole@refuge.test` | `password` | Bénévole |
 
+## Authentification et rôles
+
+L'authentification repose sur le composant **Security** de Symfony (fournisseur Doctrine,
+formulaire de connexion, déconnexion).
+
+- Inscription : `GET|POST /inscription` (`app_register`).
+- Connexion : `GET|POST /login` (`app_login`).
+- Déconnexion : route générée `_logout_main` (`/deconnexion`).
+
+Les rôles sont hiérarchisés dans `security.yaml` :
+
+| Rôle | Portée |
+| --- | --- |
+| `ROLE_USER` | Visiteur authentifié. |
+| `ROLE_VOLUNTEER` | Bénévole : gestion des animaux et des demandes. |
+| `ROLE_ADMIN` | Administrateur : supervision complète (hérite de `ROLE_VOLUNTEER`). |
+
+La protection CSRF est **sans état (stateless)** pour les formulaires et l'authentification
+(configuration dans `config/packages/csrf.yaml`).
+
 ## Configuration
 
 Les variables d'environnement sont définies dans les fichiers `.env` :
@@ -146,7 +166,7 @@ front sont servis par **AssetMapper** (importmap natif) et le style repose sur *
 
 - [x] Feature 1 — Base du projet, layout Bootstrap 5 et page d'accueil.
 - [x] Feature 2 — Modèle de données (User, Animal, AdoptionRequest).
-- [ ] Feature 3 — Authentification et gestion des rôles.
+- [x] Feature 3 — Authentification et gestion des rôles.
 - [ ] Feature 4 — Catalogue public des animaux.
 - [ ] Feature 5 — Gestion des animaux (bénévoles).
 - [ ] Feature 6 — Demandes d'adoption.

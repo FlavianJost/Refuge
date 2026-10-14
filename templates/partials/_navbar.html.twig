@@ -10,7 +10,8 @@
         <div class="collapse navbar-collapse" id="mainNavbar">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item">
-                    <a class="nav-link active" aria-current="page" href="{{ path('homepage') }}">Accueil</a>
+                    <a class="nav-link {{ app.request.attributes.get('_route') == 'homepage' ? 'active' }}"
+                       href="{{ path('homepage') }}">Accueil</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="#">Les animaux</a>
@@ -20,10 +21,32 @@
                 </li>
             </ul>
 
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item">
-                    <a class="btn btn-outline-light btn-sm mt-1" href="#">Connexion</a>
-                </li>
+            <ul class="navbar-nav ms-auto align-items-lg-center">
+                {% if app.user %}
+                    {% if is_granted('ROLE_ADMIN') %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin">Administration</a>
+                        </li>
+                    {% endif %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userMenu" role="button"
+                           data-bs-toggle="dropdown" aria-expanded="false">
+                            {{ app.user.fullName }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
+                            <li>
+                                <a class="dropdown-item" href="{{ path('_logout_main') }}">Se déconnecter</a>
+                            </li>
+                        </ul>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('app_login') }}">Connexion</a>
+                    </li>
+                    <li class="nav-item ms-lg-2">
+                        <a class="btn btn-primary btn-sm" href="{{ path('app_register') }}">Inscription</a>
+                    </li>
+                {% endif %}
             </ul>
         </div>
     </div>
