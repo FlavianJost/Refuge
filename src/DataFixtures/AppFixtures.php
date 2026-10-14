@@ -74,13 +74,13 @@ class AppFixtures extends Fixture
         // [nom, espèce, race, âge, description, statut, vues, URL de couverture, URLs de galerie]
         // Renseigne les URLs des images : les fixtures les téléchargent dans public/uploads/animals/.
         $animals = [
-            ['Rex', Species::DOG, 'Berger allemand', 4, 'Très affectueux et joueur, il s\'entend bien avec les enfants.', AnimalStatus::AVAILABLE, 128, null, []],
-            ['Mimi', Species::CAT, 'Européen', 2, 'Calme et câline, elle adore les siestes au soleil.', AnimalStatus::AVAILABLE, 74, null, []],
-            ['Nala', Species::DOG, 'Border collie', 3, 'Énergique, elle a besoin de se dépenser chaque jour.', AnimalStatus::PENDING, 51, null, []],
-            ['Biscuit', Species::RABBIT, 'Nain', 1, 'Petit et sociable, parfait pour un premier animal.', AnimalStatus::AVAILABLE, 22, null, []],
-            ['Kiwi', Species::BIRD, 'Perruche', 5, 'Bavarde et colorée, elle réclame de l\'attention.', AnimalStatus::ADOPTED, 39, null, []],
-            ['Noisette', Species::RODENT, 'Cochon d\'Inde', 2, 'Douce et tranquille, facile à vivre.', AnimalStatus::AVAILABLE, 17, null, []],
-            ['Rex', Species::CAT, 'Européen', 1, 'Un second Rex, arrivé au refuge peu après le premier.', AnimalStatus::AVAILABLE, 9, null, []],
+            ['Rex', Species::DOG, 'Berger allemand', 4, 'Très affectueux et joueur, il s\'entend bien avec les enfants.', AnimalStatus::AVAILABLE, 128, 'https://tse2.mm.bing.net/th/id/OIP.dJ3hELZeka2JBXFY3O47NgHaD8?r=0&pid=Api', []],
+            ['Mimi', Species::CAT, 'Européen', 2, 'Calme et câline, elle adore les siestes au soleil.', AnimalStatus::AVAILABLE, 74, 'https://tse3.mm.bing.net/th/id/OIP.mXRYUkd_RBdP5l-0hFOLNQHaFj?r=0&pid=Api', []],
+            ['Nala', Species::DOG, 'Border collie', 3, 'Énergique, elle a besoin de se dépenser chaque jour.', AnimalStatus::PENDING, 51, 'https://tse3.mm.bing.net/th/id/OIP.lv9UlkTDPw2hWLCb2hQbcAHaFj?r=0&pid=Api', []],
+            ['Biscuit', Species::RABBIT, 'Nain', 1, 'Petit et sociable, parfait pour un premier animal.', AnimalStatus::AVAILABLE, 22, 'https://tse2.mm.bing.net/th/id/OIP.6Ajf_rdfbycBeZl-ORV5iQHaE9?r=0&pid=Api', []],
+            ['Kiwi', Species::BIRD, 'Perruche', 5, 'Bavarde et colorée, elle réclame de l\'attention.', AnimalStatus::ADOPTED, 39, 'https://tse3.mm.bing.net/th/id/OIP.Ct8gRWSHnCcLr7ozTKmePAHaIp?r=0&pid=Api', []],
+            ['Noisette', Species::RODENT, 'Cochon d\'Inde', 2, 'Douce et tranquille, facile à vivre.', AnimalStatus::AVAILABLE, 17, 'https://tse2.mm.bing.net/th/id/OIP.IsVJynBl6INzbzCGnbpbYAHaE7?r=0&pid=Api', []],
+            ['Rex', Species::CAT, 'Européen', 1, 'Un second Rex, arrivé au refuge peu après le premier.', AnimalStatus::AVAILABLE, 9, 'https://tse3.mm.bing.net/th/id/OIP.qb7i0av0rM2I1XUqs0l7vgHaD_?r=0&pid=Api', []],
         ];
 
         $entities = [];
