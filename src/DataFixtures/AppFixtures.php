@@ -21,13 +21,20 @@ use App\Enum\VisitAppointmentStatus;
 use App\Service\AnimalSlugger;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class AppFixtures extends Fixture
 {
+    private const UPLOAD_DIR = 'public/uploads/animals';
+
     public function __construct(
         private readonly UserPasswordHasherInterface $passwordHasher,
         private readonly AnimalSlugger $animalSlugger,
+        private readonly HttpClientInterface $httpClient,
+        #[Autowire('%kernel.project_dir%')]
+        private readonly string $projectDir,
     ) {
     }
 
@@ -64,8 +71,8 @@ class AppFixtures extends Fixture
 
         $manager->flush();
 
-        // [nom, espèce, race, âge, description, statut, vues, photo de couverture, photos de galerie]
-        // Renseigne les noms de fichiers que tu déposes dans public/uploads/animals/.
+        // [nom, espèce, race, âge, description, statut, vues, URL de couverture, URLs de galerie]
+        // Renseigne les URLs des images : les fixtures les téléchargent dans public/uploads/animals/.
         $animals = [
             ['Rex', Species::DOG, 'Berger allemand', 4, 'Très affectueux et joueur, il s\'entend bien avec les enfants.', AnimalStatus::AVAILABLE, 128, null, []],
             ['Mimi', Species::CAT, 'Européen', 2, 'Calme et câline, elle adore les siestes au soleil.', AnimalStatus::AVAILABLE, 74, null, []],
@@ -77,7 +84,7 @@ class AppFixtures extends Fixture
         ];
 
         $entities = [];
-        foreach ($animals as [$name, $species, $breed, $age, $description, $status, $views, $cover, $gallery]) {
+        foreach ($animals as [$name, $species, $breed, $age, $description, $status, $views, $coverUrl, $galleryUrls]) {
             $animal = (new Animal())
                 ->setName($name)
                 ->setSpecies($species)
@@ -92,12 +99,20 @@ class AppFixtures extends Fixture
 
             $animal->setSlug($this->animalSlugger->generate($animal));
 
-            if (null !== $cover) {
-                $animal->setPhoto($cover);
+            if (null !== $coverUrl) {
+                $coverFile = $this->downloadImage($coverUrl, $animal->getSlug());
+                if (null !== $coverFile) {
+                    $animal->setPhoto($coverFile);
+                }
             }
 
-            foreach ($gallery as $filename) {
-                $animal->addPhoto((new AnimalPhoto())->setFilename($filename));
+            $position = 1;
+            foreach ($galleryUrls as $galleryUrl) {
+                ++$position;
+                $filename = $this->downloadImage($galleryUrl, $animal->getSlug().'-'.$position);
+                if (null !== $filename) {
+                    $animal->addPhoto((new AnimalPhoto())->setFilename($filename));
+                }
             }
 
             $manager->persist($animal);
@@ -252,5 +267,48 @@ class AppFixtures extends Fixture
         $user->setPassword($this->passwordHasher->hashPassword($user, 'password'));
 
         return $user;
+    }
+
+    /**
+     * Télécharge une image depuis une URL et l'enregistre dans public/uploads/animals.
+     *
+     * @return string|null le nom du fichier enregistré, ou null en cas d'échec
+     */
+    private function downloadImage(string $url, string $basename): ?string
+    {
+        $extension = strtolower((string) pathinfo((string) parse_url($url, PHP_URL_PATH), PATHINFO_EXTENSION));
+        if ('' === $extension) {
+            $extension = 'jpg';
+        }
+
+        $directory = $this->projectDir.'/'.self::UPLOAD_DIR;
+        $filename = $basename.'.'.$extension;
+
+        if (!is_dir($directory) && !@mkdir($directory, 0775, true) && !is_dir($directory)) {
+            return null;
+        }
+
+        // Déjà téléchargée : on évite de solliciter à nouveau l'URL.
+        if (is_file($directory.'/'.$filename)) {
+            return $filename;
+        }
+
+        try {
+            $response = $this->httpClient->request('GET', $url, [
+                'timeout' => 15,
+                'max_redirects' => 5,
+                'headers' => ['User-Agent' => 'RefugeFixtures/1.0'],
+            ]);
+
+            $content = $response->getContent();
+        } catch (\Throwable) {
+            return null;
+        }
+
+        if (false === @file_put_contents($directory.'/'.$filename, $content)) {
+            return null;
+        }
+
+        return $filename;
     }
 }
