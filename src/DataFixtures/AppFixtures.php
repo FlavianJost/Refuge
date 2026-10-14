@@ -7,13 +7,16 @@ use App\Entity\AdoptionRequestEvent;
 use App\Entity\Animal;
 use App\Entity\AnimalPhoto;
 use App\Entity\Conversation;
+use App\Entity\Donation;
 use App\Entity\LoginRecord;
 use App\Entity\MedicalRecord;
 use App\Entity\Message;
+use App\Entity\Review;
 use App\Entity\User;
 use App\Entity\VisitAppointment;
 use App\Enum\AdoptionRequestStatus;
 use App\Enum\AnimalStatus;
+use App\Enum\DonationStatus;
 use App\Enum\HousingType;
 use App\Enum\MedicalRecordCategory;
 use App\Enum\Species;
@@ -82,7 +85,7 @@ class AppFixtures extends Fixture
             ['Kiwi', Species::BIRD, 'Perruche', 5, 'Bavarde et colorée, elle réclame de l\'attention.', AnimalStatus::ADOPTED, 39, 'https://tse3.mm.bing.net/th/id/OIP.Ct8gRWSHnCcLr7ozTKmePAHaIp?r=0&pid=Api', []],
             ['Noisette', Species::RODENT, 'Cochon d\'Inde', 2, 'Douce et tranquille, facile à vivre.', AnimalStatus::AVAILABLE, 17, 'https://tse2.mm.bing.net/th/id/OIP.IsVJynBl6INzbzCGnbpbYAHaE7?r=0&pid=Api', []],
             ['Rex', Species::CAT, 'Européen', 1, 'Un second Rex, arrivé au refuge peu après le premier.', AnimalStatus::AVAILABLE, 9, 'https://tse3.mm.bing.net/th/id/OIP.qb7i0av0rM2I1XUqs0l7vgHaD_?r=0&pid=Api', []],
-            ['Rubye', Species::DOG, 'Cavalier King Charles', 5, 'Petite Cavalier King Charles câline et sociable, elle cherche une famille calme et attentionnée.', AnimalStatus::AVAILABLE, 34, 'rubye-9606734990821175134570183867856034207350069208798389195347490125.jpg', []],
+            ['Rubye', Species::DOG, 'Cavalier King Charles', 5, 'Petite Cavalier King Charles câline et sociable, elle cherche une famille calme et attentionnée.', AnimalStatus::AVAILABLE, 34, 'https://edef1.pcloud.com/cfZsWnMh77Z79e88r7ZBEjhZXZnPy2JkZ2ZZgFZZsojLZiFZogZb4ZzRZ38ZYzZW4ZU8Z7JZazZu4ZGLZsJZ9LZNnXpJdNyq6k9GNglhLxeWL6XhtkX/IMG_5747.JPG', []],
         ];
 
         $entities = [];
@@ -251,6 +254,32 @@ class AppFixtures extends Fixture
         $conversation2->setUnreadForUser(0);
         $conversation2->setUnreadForStaff(1);
         $manager->persist($conversation2);
+
+        // Avis des visiteurs (page d'accueil).
+        $reviews = [
+            [$camille, 5, 'Un refuge très accueillant, l\'équipe prend vraiment soin des animaux.'],
+            [$david, 4, 'Bonne expérience, l\'adoption de notre chien s\'est très bien passée.'],
+            [$volunteer, 5, 'Des animaux bien suivis et une équipe disponible, je recommande vivement.'],
+        ];
+
+        foreach ($reviews as [$user, $rating, $comment]) {
+            $manager->persist(
+                (new Review())
+                    ->setUser($user)
+                    ->setRating($rating)
+                    ->setComment($comment)
+            );
+        }
+
+        // Don de 1500 € de Camille.
+        $manager->persist(
+            (new Donation())
+                ->setAmount(150000)
+                ->setDonorName('Camille Durand')
+                ->setDonorEmail('camille@refuge.test')
+                ->setMessage('Un grand merci pour votre travail auprès des animaux.')
+                ->setStatus(DonationStatus::PAID)
+        );
 
         $manager->flush();
     }
