@@ -21,6 +21,12 @@
 
             <ul class="navbar-nav ms-auto align-items-lg-center">
                 {% if app.user %}
+                    {% if is_granted('ROLE_VOLUNTEER') %}
+                        <li class="nav-item">
+                            <a class="nav-link {{ app.request.attributes.get('_route') starts with 'app_animal_manage' ? 'active' }}"
+                               href="{{ path('app_animal_manage_index') }}">Gestion</a>
+                        </li>
+                    {% endif %}
                     {% if is_granted('ROLE_ADMIN') %}
                         <li class="nav-item">
                             <a class="nav-link" href="/admin">Administration</a>
