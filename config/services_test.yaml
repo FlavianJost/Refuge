@@ -1,0 +1,10 @@
+services:
+    # Store uploaded files in the cache directory during tests so the project
+    # tree (and the git working copy) is left untouched.
+    App\Service\AnimalPhotoUploader:
+        arguments:
+            $targetDirectory: '%kernel.cache_dir%/test-uploads/animals'
+
+    App\Service\UserPhotoUploader:
+        arguments:
+            $targetDirectory: '%kernel.cache_dir%/test-uploads/users'
