@@ -1,8 +1,53 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Accueil - Refuge Animalier{% endblock %}
+
 {% block body %}
+    <section class="hero text-white text-center py-5">
+        <div class="container py-5">
+            <h1 class="display-4 fw-bold mb-3">Trouvez votre nouveau compagnon</h1>
+            <p class="lead mb-4 mx-auto" style="max-width: 40rem;">
+                Le refuge animalier recueille, soigne et propose à l'adoption des animaux à la recherche d'une famille.
+            </p>
+            <div class="d-flex flex-column flex-sm-row justify-content-center gap-3">
+                <a href="#" class="btn btn-light btn-lg px-4">Voir les animaux</a>
+                <a href="#" class="btn btn-outline-light btn-lg px-4">Faire un don</a>
+            </div>
+        </div>
+    </section>
 
+    <section class="container py-5">
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body">
+                        <h2 class="h5 card-title">Animaux recueillis</h2>
+                        <p class="card-text text-muted mb-0">
+                            Consultez les animaux accueillis et accédez à leur fiche détaillée.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body">
+                        <h2 class="h5 card-title">Demandes d'adoption</h2>
+                        <p class="card-text text-muted mb-0">
+                            Déposez une demande d'adoption et suivez son traitement.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body">
+                        <h2 class="h5 card-title">Espace bénévoles</h2>
+                        <p class="card-text text-muted mb-0">
+                            Gérez les animaux et les demandes selon vos responsabilités.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 {% endblock %}
-
-{% block title %}
-
-{% endblock %}
-
