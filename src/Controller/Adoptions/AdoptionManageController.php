@@ -4,9 +4,12 @@ namespace App\Controller\Adoptions;
 
 use App\Entity\AdoptionRequest;
 use App\Entity\User;
+use App\Entity\VisitAppointment;
 use App\Enum\AdoptionRequestStatus;
+use App\Enum\VisitAppointmentStatus;
 use App\Repository\AdoptionRequestRepository;
 use App\Service\AdoptionRequestProcessor;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -67,6 +70,48 @@ class AdoptionManageController extends AbstractController
         $processor->changeStatus($adoptionRequest, $status, $volunteer, '' !== $note ? $note : null);
 
         $this->addFlash('success', sprintf('La demande a été marquée « %s ».', $status->label()));
+
+        return $this->redirectToRoute('app_adoption_manage_show', ['id' => $adoptionRequest->getId()]);
+    }
+
+    #[Route('/{id}/rendez-vous/{appointment}/statut', name: 'visit_status', methods: ['POST'], requirements: ['id' => '\d+', 'appointment' => '\d+'])]
+    public function changeVisitStatus(
+        Request $request,
+        AdoptionRequest $adoptionRequest,
+        VisitAppointment $appointment,
+        EntityManagerInterface $entityManager,
+    ): Response {
+        if ($appointment->getAdoptionRequest() !== $adoptionRequest) {
+            throw $this->createNotFoundException('Ce rendez-vous n\'appartient pas à cette demande.');
+        }
+
+        $token = (string) $request->request->get('_token');
+
+        if (!$this->isCsrfTokenValid('visit-status-'.$appointment->getId(), $token)) {
+            $this->addFlash('danger', 'Action non autorisée.');
+
+            return $this->redirectToRoute('app_adoption_manage_show', ['id' => $adoptionRequest->getId()]);
+        }
+
+        $status = VisitAppointmentStatus::tryFrom((string) $request->request->get('status'));
+        $volunteer = $this->getUser();
+
+        if (null === $status || !$volunteer instanceof User) {
+            $this->addFlash('danger', 'Statut invalide.');
+
+            return $this->redirectToRoute('app_adoption_manage_show', ['id' => $adoptionRequest->getId()]);
+        }
+
+        $response = trim((string) $request->request->get('response'));
+
+        $appointment->setStatus($status)
+            ->setProcessedBy($volunteer)
+            ->setResponse('' !== $response ? $response : null)
+            ->touch();
+
+        $entityManager->flush();
+
+        $this->addFlash('success', sprintf('Le rendez-vous a été marqué « %s ».', $status->label()));
 
         return $this->redirectToRoute('app_adoption_manage_show', ['id' => $adoptionRequest->getId()]);
     }

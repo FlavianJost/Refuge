@@ -105,6 +105,13 @@
                         </form>
                     </div>
                 </div>
+
+                <div class="card border-0 shadow-sm mt-4">
+                    <div class="card-body">
+                        <h2 class="h5 mb-3">Rendez-vous de visite</h2>
+                        {% include 'Visit/_list.html.twig' with { appointments: adoption_request.appointments, is_staff: true } only %}
+                    </div>
+                </div>
             </div>
         </div>
     </div>

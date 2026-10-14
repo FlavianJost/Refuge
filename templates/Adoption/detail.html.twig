@@ -58,6 +58,23 @@
             </div>
         </div>
 
+        <div class="card border-0 shadow-sm mt-4">
+            <div class="card-body">
+                <h2 class="h5 mb-3">Rendez-vous de visite</h2>
+                {% include 'Visit/_list.html.twig' with { appointments: adoption_request.appointments } only %}
+
+                <hr>
+                <h3 class="h6">Proposer une nouvelle date</h3>
+                {{ form_start(visit_form, { action: path('app_visit_request_new', { id: adoption_request.id }) }) }}
+                    <div class="row g-3">
+                        <div class="col-md-5">{{ form_row(visit_form.proposedAt) }}</div>
+                        <div class="col-md-7">{{ form_row(visit_form.note) }}</div>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-2">Proposer ce rendez-vous</button>
+                {{ form_end(visit_form) }}
+            </div>
+        </div>
+
         <div class="mt-4">
             <a href="{{ path('app_profile') }}" class="btn btn-link">Retour à mon profil</a>
         </div>

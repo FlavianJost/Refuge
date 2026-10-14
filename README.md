@@ -107,7 +107,7 @@ php bin/console asset-map:compile
 
 ## Modèle de données
 
-L'application s'appuie sur **dix entités Doctrine** :
+L'application s'appuie sur **onze entités Doctrine** :
 
 | Entité | Description | Champs principaux |
 | --- | --- | --- |
@@ -117,12 +117,13 @@ L'application s'appuie sur **dix entités Doctrine** :
 | `MedicalRecord` | Acte médical consigné dans le dossier médical d'un animal (accès réservé à l'équipe). | animal, date, type d'acte, motif, détails, vétérinaire |
 | `AdoptionRequest` | Demande d'adoption déposée par un utilisateur pour un animal. | animal, utilisateur, message, questionnaire pré-adoption, statut, traitement |
 | `AdoptionRequestEvent` | Étape du parcours d'une demande d'adoption (dépôt, prise en charge, acceptation, refus). | demande, statut, commentaire, auteur, date |
+| `VisitAppointment` | Rendez-vous de visite proposé par un utilisateur pour une demande d'adoption, confirmé ou refusé par l'équipe. | demande, date proposée, statut, note, réponse, traitée par |
 | `Donation` | Don effectué via la page de démonstration (paiement simulé). | montant (en centimes), donateur, email, message, statut, date |
 | `Review` | Avis publié par un utilisateur sur le refuge. | utilisateur, note (1 à 5), commentaire, date |
 | `Conversation` | Fil de discussion entre un utilisateur et le refuge (un fil par utilisateur). | utilisateur, compteurs de messages non lus, dates |
 | `Message` | Message publié dans une conversation, par un utilisateur ou un membre du refuge. | conversation, auteur, texte, émis par l'équipe, date |
 
-Six énumérations typent les valeurs métier, avec des libellés français :
+Sept énumérations typent les valeurs métier, avec des libellés français :
 
 - `Species` : chien, chat, lapin, oiseau, rongeur, autre.
 - `AnimalStatus` : disponible, en cours d'adoption, adopté.
@@ -130,6 +131,7 @@ Six énumérations typent les valeurs métier, avec des libellés français :
 - `DonationStatus` : confirmé, en attente, échoué.
 - `MedicalRecordCategory` : vaccination, traitement, soins, visite vétérinaire, chirurgie, autre.
 - `HousingType` : appartement, maison, autre.
+- `VisitAppointmentStatus` : en attente, confirmé, refusé.
 
 Elles implémentent `TranslatableInterface`, ce qui permet à EasyAdmin d'afficher directement leurs
 libellés français dans les formulaires, les listes et les filtres.
@@ -217,19 +219,25 @@ dans un carrousel.
   (pas de saisie de coordonnées) et une demande en doublon pour le même animal est refusée.
   Le formulaire intègre un **questionnaire pré-adoption** (type de logement, jardin, autres animaux,
   enfants, expérience) en plus du message libre.
-- `GET /profil/adoptions/{id}` (`app_adoption_request_show`) — suivi d'une demande : statut courant et
-  **parcours** complet. Seul le propriétaire de la demande peut y accéder.
+- `GET /profil/adoptions/{id}` (`app_adoption_request_show`) — suivi d'une demande : statut courant,
+  **parcours** complet et **rendez-vous de visite**. Seul le propriétaire de la demande peut y accéder.
+- `POST /profil/adoptions/{id}/rendez-vous` (`app_visit_request_new`) — proposition d'une date de
+  visite depuis cette page de suivi.
 
 Chaque demande possède un **parcours** (entité `AdoptionRequestEvent`) qui enregistre ses étapes
 successives : dépôt par l'utilisateur, puis chaque changement de statut effectué par l'équipe, avec
-la date, l'auteur et un commentaire facultatif.
+la date, l'auteur et un commentaire facultatif. L'utilisateur peut également **proposer un rendez-vous
+de visite** (entité `VisitAppointment`) ; l'équipe le confirme ou le refuse.
 
 ### Côté bénévole (`ROLE_VOLUNTEER`)
 
 - `GET /gestion/demandes` (`app_adoption_manage_index`) — liste des demandes avec filtre par statut.
-- `GET /gestion/demandes/{id}` (`app_adoption_manage_show`) — détail d'une demande et de son parcours.
+- `GET /gestion/demandes/{id}` (`app_adoption_manage_show`) — détail d'une demande, de son parcours et
+  de ses rendez-vous.
 - `POST /gestion/demandes/{id}/statut` (`app_adoption_manage_status`) — changement de statut, avec un
   commentaire facultatif ajouté au parcours.
+- `POST /gestion/demandes/{id}/rendez-vous/{appointment}/statut` (`app_adoption_manage_visit_status`) —
+  confirmation ou refus d'un rendez-vous de visite, avec une réponse facultative.
 
 Les transitions sont gérées par le service `App\Service\AdoptionRequestProcessor` :
 

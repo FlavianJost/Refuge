@@ -66,10 +66,18 @@ class AdoptionRequest
     #[ORM\OrderBy(['createdAt' => 'ASC', 'id' => 'ASC'])]
     private Collection $events;
 
+    /**
+     * @var Collection<int, VisitAppointment>
+     */
+    #[ORM\OneToMany(targetEntity: VisitAppointment::class, mappedBy: 'adoptionRequest', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[ORM\OrderBy(['createdAt' => 'DESC', 'id' => 'DESC'])]
+    private Collection $appointments;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
         $this->events = new ArrayCollection();
+        $this->appointments = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -243,6 +251,33 @@ class AdoptionRequest
     {
         if ($this->events->removeElement($event) && $event->getAdoptionRequest() === $this) {
             $event->setAdoptionRequest(null);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, VisitAppointment>
+     */
+    public function getAppointments(): Collection
+    {
+        return $this->appointments;
+    }
+
+    public function addAppointment(VisitAppointment $appointment): static
+    {
+        if (!$this->appointments->contains($appointment)) {
+            $this->appointments->add($appointment);
+            $appointment->setAdoptionRequest($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAppointment(VisitAppointment $appointment): static
+    {
+        if ($this->appointments->removeElement($appointment) && $appointment->getAdoptionRequest() === $this) {
+            $appointment->setAdoptionRequest(null);
         }
 
         return $this;
