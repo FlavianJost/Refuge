@@ -53,6 +53,10 @@
                                     <a class="nav-link {{ app.request.attributes.get('_route') starts with 'app_adoption_manage' ? 'active' }}"
                                        href="{{ path('app_adoption_manage_index') }}">Demandes</a>
                                 </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ app.request.attributes.get('_route') starts with 'app_message_manage' ? 'active' }}"
+                                       href="{{ path('app_message_manage_index') }}">Messagerie</a>
+                                </li>
                             {% endif %}
                             {% if is_granted('ROLE_ADMIN') %}
                                 <li class="nav-item">
@@ -70,7 +74,7 @@
                                         <a class="dropdown-item" href="{{ path('app_profile') }}">Mon profil</a>
                                     </li>
                                     <li>
-                                        <a class="dropdown-item" href="{{ path('app_contact') }}">Contacter le refuge</a>
+                                        <a class="dropdown-item" href="{{ path('app_message_index') }}">Ma messagerie</a>
                                     </li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li>

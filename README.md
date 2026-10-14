@@ -27,7 +27,7 @@ demandes d'adoption et d'organiser les niveaux d'accès (visiteur, bénévole, a
 - Niveaux d'accès : visiteur, bénévole, administrateur.
 - Page de don (démonstration) avec enregistrement des dons en base.
 - Avis sur le refuge : consultation publique et dépôt d'avis par les utilisateurs connectés.
-- Formulaire de contact dans l'espace client, avec suivi des messages dans le back-office.
+- Messagerie interne dans l'espace client, avec fil de discussion et réponses de l'équipe du refuge.
 - Changement de mot de passe et authentification à deux facteurs (TOTP) depuis le profil.
 - Back-office d'administration (gestion des utilisateurs, supervision).
 
@@ -75,7 +75,8 @@ L'application s'appuie sur trois entités Doctrine :
 | `AdoptionRequest` | Demande d'adoption déposée par un utilisateur pour un animal. | animal, utilisateur, message, statut, traitement |
 | `Donation` | Don effectué via la page de démonstration (paiement simulé). | montant (en centimes), donateur, email, message, statut, date |
 | `Review` | Avis publié par un utilisateur sur le refuge. | utilisateur, note (1 à 5), commentaire, date |
-| `ContactMessage` | Message envoyé au refuge depuis l'espace client. | utilisateur, sujet, message, traité, date |
+| `Conversation` | Fil de discussion entre un utilisateur et le refuge (un fil par utilisateur). | utilisateur, compteurs de messages non lus, dates |
+| `Message` | Message publié dans une conversation, par un utilisateur ou un membre du refuge. | conversation, auteur, message, émis par l'équipe, date |
 
 Deux énumérations typent les états : `AnimalStatus` (disponible, en cours d'adoption,
 adopté) et `AdoptionRequestStatus` (nouvelle, en cours, acceptée, refusée). Les dons
@@ -195,9 +196,10 @@ Espace réservé aux utilisateurs disposant du rôle `ROLE_ADMIN`, généré ave
 sous le chemin `/admin` (route `admin`, protégée par `access_control` et l'attribut `#[IsGranted]`).
 
 - `/admin` — tableau de bord (nombre d'animaux, de demandes d'adoption et d'utilisateurs, nombre et
-  total des dons, nombre d'avis, nombre de messages de contact).
-- Gestion **des animaux**, **des demandes d'adoption**, **des dons**, **des avis**,
-  **des messages de contact** et **des utilisateurs** via les contrôleurs CRUD d'EasyAdmin.
+  total des dons, nombre d'avis, nombre de conversations et de messages non lus).
+- Gestion **des animaux**, **des demandes d'adoption**, **des dons**, **des avis** et
+  **des utilisateurs** via les contrôleurs CRUD d'EasyAdmin. La **messagerie** est gérée depuis une
+  page dédiée (voir la section « Messagerie »).
 
 Le tableau de bord et les contrôleurs CRUD se trouvent dans `src/Controller/Admin/` et
 configurent l'affichage en français (libellés, badges de statut, filtres). Les énumérations
@@ -216,7 +218,7 @@ l'attribut `#[IsGranted]`.
 
 - `/profil` (route `app_profile`) — affiche toutes les informations du compte (nom, email, rôles,
   date d'inscription, dernière connexion, nombre de demandes), le suivi de ses demandes
-  d'adoption ainsi que ses avis. Un lien permet de **contacter le refuge** et une section
+  d'adoption ainsi que ses avis. Un lien permet d'accéder à sa **messagerie** et une section
   « Sécurité » permet de gérer l'**authentification à deux facteurs**.
 - `/profil/modifier` (route `app_profile_edit`) — permet de modifier le prénom, le nom et l'adresse
   email, d'ajouter ou remplacer une **photo de profil** (JPEG, PNG ou WebP, 4 Mo max) et de
@@ -252,17 +254,33 @@ Avis généraux portant sur le refuge (et non sur un animal en particulier).
 
 Les avis d'un utilisateur sont également visibles dans la section « Mes avis » de son profil.
 
-## Contact
+## Messagerie
 
-Formulaire de contact destiné aux utilisateurs connectés (`ROLE_USER`), accessible depuis l'espace
-client (menu utilisateur et page de profil).
+Fil de discussion entre chaque utilisateur connecté (`ROLE_USER`) et l'équipe du refuge (bénévoles
+`ROLE_VOLUNTEER` et administrateurs). Les échanges se font directement dans l'application (sans email).
 
-- `GET|POST /profil/contact` (route `app_contact`) — envoi d'un message au refuge (sujet et message),
-  rattaché au compte de l'utilisateur. La page liste également les messages déjà envoyés et leur état
-  de traitement.
+### Côté utilisateur
 
-Les messages sont enregistrés dans la table `contact_message` (entité `ContactMessage`) et sont
-consultables depuis le back-office, où ils peuvent être marqués comme **traités**.
+- `GET|POST /profil/messages` (route `app_message_index`) — affiche le fil de discussion et permet
+  d'envoyer un message au refuge.
+- `GET /profil/messages/nouveaux` (route `app_message_latest`) — endpoint JSON utilisé pour le
+  rafraîchissement automatique.
+
+### Côté équipe du refuge (`ROLE_VOLUNTEER`)
+
+- `GET /gestion/messages` (route `app_message_manage_index`) — liste des conversations triées par
+  activité, avec le nombre de messages non lus.
+- `GET|POST /gestion/messages/{id}` (route `app_message_manage_show`) — consultation d'une
+  conversation et réponse de l'équipe.
+- `GET /gestion/messages/{id}/nouveaux` (route `app_message_manage_latest`) — endpoint JSON de
+  rafraîchissement.
+
+Les échanges sont enregistrés dans les tables `conversation` et `message` (entités `Conversation` et
+`Message`). Chaque utilisateur dispose d'une seule conversation ; les compteurs `unread_for_user` et
+`unread_for_staff` alimentent les badges de messages non lus. Les nouveaux messages sont chargés
+automatiquement toutes les quelques secondes par un contrôleur Stimulus
+(`assets/controllers/message_poll_controller.js`), ce qui donne une impression de discussion en
+direct sans WebSocket.
 
 ## Configuration
 
@@ -373,5 +391,5 @@ front sont servis par **AssetMapper** (importmap natif) et le style repose sur *
 - [x] Feature 9 — Tests unitaires et fonctionnels.
 - [x] Page de don (démonstration) et suivi des dons dans le back-office.
 - [x] Avis généraux sur le refuge (page publique, dépôt par les utilisateurs, modération en back-office).
-- [x] Formulaire de contact dans l'espace client et suivi des messages en back-office.
+- [x] Messagerie interne entre les utilisateurs et l'équipe du refuge (fil de discussion et réponses).
 - [x] Changement de mot de passe et authentification à deux facteurs (TOTP) depuis le profil.
