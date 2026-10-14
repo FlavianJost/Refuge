@@ -1,0 +1,32 @@
+<div class="card h-100 border-0 shadow-sm">
+    {% if animal.photo %}
+        <img src="/uploads/animals/{{ animal.photo }}" class="card-img-top" alt="{{ animal.name }}"
+             style="height: 220px; object-fit: cover;">
+    {% else %}
+        <div class="card-img-top bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center text-muted"
+             style="height: 220px;">
+            <span class="fs-4">{{ animal.species.label() }}</span>
+        </div>
+    {% endif %}
+
+    <div class="card-body d-flex flex-column">
+        <div class="d-flex justify-content-between align-items-start gap-2">
+            <h2 class="h5 card-title mb-1">{{ animal.name }}</h2>
+            <span class="badge text-bg-{{ animal.status.badgeClass() }}">{{ animal.status.label() }}</span>
+        </div>
+
+        <p class="text-muted small mb-2">
+            {{ animal.species.label() }}
+            {%- if animal.breed %} · {{ animal.breed }}{% endif %}
+            {%- if animal.age is not null %} · {{ animal.age }} an{{ animal.age > 1 ? 's' }}{% endif %}
+        </p>
+
+        {% if animal.description %}
+            <p class="card-text flex-grow-1">{{ animal.description|length > 110 ? animal.description|slice(0, 110) ~ '…' : animal.description }}</p>
+        {% else %}
+            <p class="card-text flex-grow-1"></p>
+        {% endif %}
+
+        <a href="{{ path('app_animal_show', { id: animal.id }) }}" class="btn btn-outline-primary">Voir la fiche</a>
+    </div>
+</div>
