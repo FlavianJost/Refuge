@@ -59,9 +59,6 @@
             "config/routes/easyadmin.yaml"
         ]
     },
-    "hwi/oauth-bundle": {
-        "version": "2.4.0"
-    },
     "phpunit/phpunit": {
         "version": "11.5",
         "recipe": {
