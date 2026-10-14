@@ -26,6 +26,10 @@
                             <a class="nav-link {{ app.request.attributes.get('_route') starts with 'app_animal_manage' ? 'active' }}"
                                href="{{ path('app_animal_manage_index') }}">Gestion</a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ app.request.attributes.get('_route') starts with 'app_adoption_manage' ? 'active' }}"
+                               href="{{ path('app_adoption_manage_index') }}">Demandes</a>
+                        </li>
                     {% endif %}
                     {% if is_granted('ROLE_ADMIN') %}
                         <li class="nav-item">
