@@ -19,7 +19,7 @@ demandes d'adoption et d'organiser les niveaux d'accès (visiteur, bénévole, a
 ## Fonctionnalités
 
 - Consultation publique des animaux accueillis et de leur fiche détaillée.
-- Dépôt d'une demande d'adoption par les visiteurs.
+- Dépôt d'une demande d'adoption par les utilisateurs connectés.
 - Gestion des animaux (ajout, modification, statut) par les membres autorisés.
 - Suivi et traitement des demandes d'adoption par les membres.
 - Niveaux d'accès : visiteur, bénévole, administrateur.
@@ -63,21 +63,24 @@ L'application s'appuie sur trois entités Doctrine :
 
 | Entité | Description | Champs principaux |
 | --- | --- | --- |
-| `User` | Utilisateur de l'application (visiteur, bénévole, administrateur). | email, rôles, mot de passe, prénom, nom |
+| `User` | Utilisateur de l'application (visiteur, bénévole, administrateur). | email, rôles, mot de passe, prénom, nom, dernière connexion |
 | `Animal` | Animal accueilli au refuge. | nom, espèce, race, âge, description, statut, photo |
-| `AdoptionRequest` | Demande d'adoption déposée pour un animal. | animal, demandeur, contact, message, statut |
+| `AdoptionRequest` | Demande d'adoption déposée par un utilisateur pour un animal. | animal, utilisateur, message, statut, traitement |
 
 Deux énumérations typent les états : `AnimalStatus` (disponible, en cours d'adoption,
 adopté) et `AdoptionRequestStatus` (nouvelle, en cours, acceptée, refusée).
 
 ### Données de démonstration
 
-Le jeu de données (`AppFixtures`) crée deux comptes et plusieurs animaux :
+Le jeu de données (`AppFixtures`) crée des comptes, plusieurs animaux et des demandes d'adoption
+de démonstration :
 
 | Email | Mot de passe | Rôle |
 | --- | --- | --- |
 | `admin@refuge.test` | `password` | Administrateur |
 | `benevole@refuge.test` | `password` | Bénévole |
+| `camille@refuge.test` | `password` | Utilisateur (candidat) |
+| `david@refuge.test` | `password` | Utilisateur (candidat) |
 
 ## Authentification et rôles
 
@@ -97,7 +100,11 @@ Les rôles sont hiérarchisés dans `security.yaml` :
 | `ROLE_ADMIN` | Administrateur : supervision complète (hérite de `ROLE_VOLUNTEER`). |
 
 La protection CSRF est **sans état (stateless)** pour les formulaires et l'authentification
-(configuration dans `config/packages/csrf.yaml`).
+(configuration dans `config/packages/csrf.yaml`). La date de dernière connexion est enregistrée
+automatiquement à chaque authentification (`App\EventListener\LoginListener`).
+
+Les zones sensibles sont également protégées au niveau des contrôleurs par l'attribut
+`#[IsGranted]` (défense en profondeur en plus des `access_control`).
 
 ## Catalogue des animaux (public)
 
@@ -123,11 +130,13 @@ photo précédente est supprimée lors d'un remplacement ou de la suppression de
 
 ## Demandes d'adoption
 
-### Côté visiteur (public)
+### Côté utilisateur connecté (`ROLE_USER`)
 
 - `GET|POST /animaux/{id}/adopter` — formulaire de demande d'adoption (`app_adoption_request_new`),
-  accessible depuis la fiche de l'animal. Les coordonnées sont pré-remplies si l'utilisateur est
-  connecté. Une demande en doublon (même email, même animal) est refusée.
+  accessible depuis la fiche de l'animal. La demande est **réservée aux utilisateurs connectés** :
+  un visiteur est redirigé vers la page de connexion. La demande est rattachée au compte de
+  l'utilisateur (pas de saisie de coordonnées) et une demande en doublon pour le même animal est
+  refusée.
 
 ### Côté bénévole (`ROLE_VOLUNTEER`)
 
@@ -187,11 +196,12 @@ src/
   Controller/      # Contrôleurs (organisés par domaine)
   Entity/          # Entités Doctrine
   Enum/            # Énumérations métier
-  Form/            # Formulaires Symfony
+  Form/            # Formulaires Symfony (organisés par domaine)
   Repository/      # Repositories Doctrine
   Service/         # Services applicatifs (upload, etc.)
+  EventListener/   # Écouteurs d'événements (connexion)
   DataFixtures/    # Jeu de données de démonstration
-templates/         # Templates Twig (base, partials, pages)
+templates/         # Templates Twig (dossiers par domaine, base + partials)
 tests/             # Tests unitaires et fonctionnels
 ```
 

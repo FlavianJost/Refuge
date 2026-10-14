@@ -50,8 +50,12 @@
                                     {% endif %}
                                 </td>
                                 <td>
-                                    {{ adoption_request.applicantName }}<br>
-                                    <span class="text-muted small">{{ adoption_request.email }}</span>
+                                    {% if adoption_request.user %}
+                                        {{ adoption_request.user.fullName }}<br>
+                                        <span class="text-muted small">{{ adoption_request.user.email }}</span>
+                                    {% else %}
+                                        —
+                                    {% endif %}
                                 </td>
                                 <td><span class="badge text-bg-{{ adoption_request.status.badgeClass() }}">{{ adoption_request.status.label() }}</span></td>
                                 <td class="text-end">

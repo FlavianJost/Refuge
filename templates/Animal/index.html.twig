@@ -43,7 +43,7 @@
             <div class="row g-4">
                 {% for animal in animals %}
                     <div class="col-md-6 col-lg-4">
-                        {% include 'animal/_card.html.twig' with { animal: animal } only %}
+                        {% include 'Animal/card.html.twig' with { animal: animal } only %}
                     </div>
                 {% endfor %}
             </div>

@@ -35,12 +35,13 @@
 
                 <div class="card border-0 shadow-sm">
                     <div class="card-body p-4">
+                        <p class="text-muted">
+                            Vous postulez en tant que
+                            <strong>{{ app.user.fullName }}</strong>
+                            ({{ app.user.email }}).
+                        </p>
+
                         {{ form_start(form) }}
-                            {{ form_row(form.applicantName) }}
-                            <div class="row">
-                                <div class="col-md-6">{{ form_row(form.email) }}</div>
-                                <div class="col-md-6">{{ form_row(form.phone) }}</div>
-                            </div>
                             {{ form_row(form.message) }}
 
                             <div class="mt-4 d-flex gap-2">

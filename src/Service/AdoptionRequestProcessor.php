@@ -28,11 +28,9 @@ class AdoptionRequestProcessor
 
     private function accept(AdoptionRequest $request, User $volunteer): void
     {
-        $now = new \DateTimeImmutable();
-
         $request->setStatus(AdoptionRequestStatus::ACCEPTED)
             ->setProcessedBy($volunteer)
-            ->setProcessedAt($now);
+            ->touch();
 
         $animal = $request->getAnimal();
 
@@ -46,7 +44,7 @@ class AdoptionRequestProcessor
             if ($other !== $request && AdoptionRequestStatus::REJECTED !== $other->getStatus()) {
                 $other->setStatus(AdoptionRequestStatus::REJECTED)
                     ->setProcessedBy($volunteer)
-                    ->setProcessedAt($now);
+                    ->touch();
             }
         }
     }
@@ -55,14 +53,14 @@ class AdoptionRequestProcessor
     {
         $request->setStatus(AdoptionRequestStatus::REJECTED)
             ->setProcessedBy($volunteer)
-            ->setProcessedAt(new \DateTimeImmutable());
+            ->touch();
     }
 
     private function reopen(AdoptionRequest $request, AdoptionRequestStatus $status): void
     {
         $request->setStatus($status)
             ->setProcessedBy(null)
-            ->setProcessedAt(null);
+            ->touch();
 
         $animal = $request->getAnimal();
 

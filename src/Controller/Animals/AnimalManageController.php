@@ -3,7 +3,7 @@
 namespace App\Controller\Animals;
 
 use App\Entity\Animal;
-use App\Form\AnimalType;
+use App\Form\Animal\AnimalType;
 use App\Repository\AnimalRepository;
 use App\Service\AnimalPhotoUploader;
 use Doctrine\ORM\EntityManagerInterface;
@@ -12,14 +12,16 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/gestion/animaux', name: 'app_animal_manage_')]
+#[IsGranted('ROLE_VOLUNTEER')]
 class AnimalManageController extends AbstractController
 {
     #[Route('', name: 'index', methods: ['GET'])]
     public function index(AnimalRepository $animalRepository): Response
     {
-        return $this->render('animal/manage/index.html.twig', [
+        return $this->render('Animal/manage/index.html.twig', [
             'animals' => $animalRepository->findBy([], ['name' => 'ASC']),
         ]);
     }
@@ -42,7 +44,7 @@ class AnimalManageController extends AbstractController
             return $this->redirectToRoute('app_animal_manage_index');
         }
 
-        return $this->render('animal/manage/new.html.twig', [
+        return $this->render('Animal/new.html.twig', [
             'form' => $form,
         ]);
     }
@@ -64,7 +66,7 @@ class AnimalManageController extends AbstractController
             return $this->redirectToRoute('app_animal_manage_index');
         }
 
-        return $this->render('animal/manage/edit.html.twig', [
+        return $this->render('Animal/edit.html.twig', [
             'animal' => $animal,
             'form' => $form,
         ]);

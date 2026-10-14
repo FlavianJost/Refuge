@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Form;
+namespace App\Form\Animal;
 
 use App\Entity\Animal;
 use App\Enum\AnimalStatus;
