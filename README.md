@@ -25,6 +25,7 @@ demandes d'adoption et d'organiser les niveaux d'accès (visiteur, bénévole, a
 - Gestion des animaux (ajout, modification, statut) par les membres autorisés.
 - Suivi et traitement des demandes d'adoption par les membres.
 - Niveaux d'accès : visiteur, bénévole, administrateur.
+- Page de don (démonstration) avec enregistrement des dons en base.
 - Back-office d'administration (gestion des utilisateurs, supervision).
 
 ## Prérequis
@@ -68,9 +69,11 @@ L'application s'appuie sur trois entités Doctrine :
 | `User` | Utilisateur de l'application (visiteur, bénévole, administrateur). | email, rôles, mot de passe, prénom, nom, dernière connexion |
 | `Animal` | Animal accueilli au refuge. | nom, espèce, race, âge, description, statut, photo |
 | `AdoptionRequest` | Demande d'adoption déposée par un utilisateur pour un animal. | animal, utilisateur, message, statut, traitement |
+| `Donation` | Don effectué via la page de démonstration (paiement simulé). | montant (en centimes), donateur, email, message, statut, date |
 
 Deux énumérations typent les états : `AnimalStatus` (disponible, en cours d'adoption,
-adopté) et `AdoptionRequestStatus` (nouvelle, en cours, acceptée, refusée).
+adopté) et `AdoptionRequestStatus` (nouvelle, en cours, acceptée, refusée). Les dons
+utilisent l'énumération `DonationStatus` (confirmé, en attente, échoué).
 
 ### Données de démonstration
 
@@ -163,13 +166,14 @@ Les transitions sont gérées par le service `App\Service\AdoptionRequestProcess
 Espace réservé aux utilisateurs disposant du rôle `ROLE_ADMIN`, généré avec **EasyAdmin 5**
 sous le chemin `/admin` (route `admin`, protégée par `access_control` et l'attribut `#[IsGranted]`).
 
-- `/admin` — tableau de bord (nombre d'animaux, de demandes d'adoption et d'utilisateurs).
-- Gestion **des animaux**, **des demandes d'adoption** et **des utilisateurs** via les
+- `/admin` — tableau de bord (nombre d'animaux, de demandes d'adoption et d'utilisateurs, ainsi que
+  le nombre et le total des dons).
+- Gestion **des animaux**, **des demandes d'adoption**, **des dons** et **des utilisateurs** via les
   contrôleurs CRUD d'EasyAdmin.
 
 Le tableau de bord et les contrôleurs CRUD se trouvent dans `src/Controller/Admin/` et
 configurent l'affichage en français (libellés, badges de statut, filtres). Les énumérations
-(`Species`, `AnimalStatus`, `AdoptionRequestStatus`) implémentent
+(`Species`, `AnimalStatus`, `AdoptionRequestStatus`, `DonationStatus`) implémentent
 `Symfony\Contracts\Translation\TranslatableInterface` afin qu'EasyAdmin affiche leurs libellés
 français dans les formulaires, les listes et les filtres.
 
@@ -189,6 +193,20 @@ l'attribut `#[IsGranted]`.
   email, et d'ajouter ou remplacer une **photo de profil** (JPEG, PNG ou WebP, 4 Mo max). Les photos
   sont stockées dans `public/uploads/users/` (répertoire non versionné) via le service
   `App\Service\UserPhotoUploader`.
+
+## Dons (démonstration)
+
+Page publique de soutien au refuge :
+
+- `GET|POST /faire-un-don` (route `app_donation_new`) — formulaire de don avec **montant libre**,
+  coordonnées facultatives du donateur (nom, email, message) et un **faux formulaire bancaire**
+  (numéro de carte, expiration, CVC). Le paiement est **simulé** : aucune donnée bancaire n'est
+  transmise ni enregistrée, et l'utilisateur n'a pas besoin d'être connecté.
+- `GET /faire-un-don/merci` (route `app_donation_thanks`) — page de confirmation après un don.
+
+Chaque don valide est enregistré dans la table `donation` (entité `Donation`) avec son montant
+stocké en **centimes** et le statut `DonationStatus::PAID`. Les dons sont consultables et leur
+total est affiché dans le back-office (voir la section suivante).
 
 ## Configuration
 
@@ -295,3 +313,4 @@ front sont servis par **AssetMapper** (importmap natif) et le style repose sur *
 - [x] Feature 7 — Back-office EasyAdmin.
 - [ ] Connexion Google (OAuth) — retirée de cette version, à réintroduire ultérieurement.
 - [x] Feature 9 — Tests unitaires et fonctionnels.
+- [x] Page de don (démonstration) et suivi des dons dans le back-office.

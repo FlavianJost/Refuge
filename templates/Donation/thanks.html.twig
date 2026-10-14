@@ -1,0 +1,22 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Merci pour votre don - Refuge Animalier{% endblock %}
+
+{% block body %}
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-6 text-center">
+                <div class="display-1 text-success mb-3">&hearts;</div>
+                <h1 class="h2 mb-3">Merci pour votre générosité !</h1>
+                <p class="text-muted mb-4">
+                    Votre don (simulation) a bien été enregistré. Grâce à vous, nous pouvons continuer à prendre
+                    soin de nos pensionnaires.
+                </p>
+                <div class="d-flex flex-column flex-sm-row justify-content-center gap-2">
+                    <a href="{{ path('homepage') }}" class="btn btn-primary">Retour à l'accueil</a>
+                    <a href="{{ path('app_animal_index') }}" class="btn btn-outline-secondary">Voir les animaux</a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
