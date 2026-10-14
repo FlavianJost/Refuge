@@ -2,6 +2,7 @@
 
 namespace App\EventListener;
 
+use App\Entity\LoginRecord;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -23,6 +24,14 @@ class LoginListener implements EventSubscriberInterface
         }
 
         $user->setLastLoginAt(new \DateTimeImmutable());
+
+        $record = (new LoginRecord())
+            ->setUser($user)
+            ->setIpAddress($event->getRequest()->getClientIp());
+
+        $user->addLoginRecord($record);
+
+        $this->entityManager->persist($record);
         $this->entityManager->flush();
     }
 

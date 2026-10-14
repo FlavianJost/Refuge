@@ -107,11 +107,12 @@ php bin/console asset-map:compile
 
 ## Modèle de données
 
-L'application s'appuie sur **onze entités Doctrine** :
+L'application s'appuie sur **douze entités Doctrine** :
 
 | Entité | Description | Champs principaux |
 | --- | --- | --- |
 | `User` | Utilisateur de l'application (visiteur, bénévole, administrateur). | email, rôles, mot de passe, prénom, nom, photo, dernière connexion, secret TOTP |
+| `LoginRecord` | Trace d'une connexion réussie (date et adresse IP), affichée dans l'espace utilisateur. | utilisateur, adresse IP, date |
 | `Animal` | Animal accueilli au refuge. | nom, slug, espèce, race, âge, description, statut, photo, nombre de vues |
 | `AnimalPhoto` | Photo supplémentaire rattachée à la galerie d'un animal (la photo principale reste portée par `Animal`). | animal, nom de fichier, date |
 | `MedicalRecord` | Acte médical consigné dans le dossier médical d'un animal (accès réservé à l'équipe). | animal, date, type d'acte, motif, détails, vétérinaire |
@@ -265,6 +266,14 @@ l'attribut `#[IsGranted]`.
 - `GET|POST /profil/messages` (`app_message_index`) — messagerie avec l'équipe du refuge.
 - `GET|POST /avis/nouveau` (`app_review_new`) et `POST /avis/{id}/supprimer` (`app_review_delete`) —
   dépôt et suppression d'un avis.
+- `GET /profil/export` (`app_profile_export`) — **export RGPD** : téléchargement d'un fichier JSON
+  contenant le profil, les demandes d'adoption (avec parcours et rendez-vous), les avis, les messages
+  et l'historique de connexions.
+- `POST /profil/supprimer` (`app_profile_delete`) — **suppression du compte** (après confirmation du
+  mot de passe), avec effacement en cascade des données associées.
+
+L'espace utilisateur affiche également un **historique des connexions** (entité `LoginRecord`) : les
+dix dernières connexions réussies avec leur date et leur adresse IP.
 
 ## Messagerie
 

@@ -75,12 +75,20 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TotpTwo
     #[ORM\OrderBy(['createdAt' => 'DESC'])]
     private Collection $reviews;
 
+    /**
+     * @var Collection<int, LoginRecord>
+     */
+    #[ORM\OneToMany(targetEntity: LoginRecord::class, mappedBy: 'user', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[ORM\OrderBy(['createdAt' => 'DESC', 'id' => 'DESC'])]
+    private Collection $loginRecords;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
         $this->processedRequests = new ArrayCollection();
         $this->adoptionRequests = new ArrayCollection();
         $this->reviews = new ArrayCollection();
+        $this->loginRecords = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -292,6 +300,33 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TotpTwo
     {
         if ($this->processedRequests->removeElement($request) && $request->getProcessedBy() === $this) {
             $request->setProcessedBy(null);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, LoginRecord>
+     */
+    public function getLoginRecords(): Collection
+    {
+        return $this->loginRecords;
+    }
+
+    public function addLoginRecord(LoginRecord $loginRecord): static
+    {
+        if (!$this->loginRecords->contains($loginRecord)) {
+            $this->loginRecords->add($loginRecord);
+            $loginRecord->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLoginRecord(LoginRecord $loginRecord): static
+    {
+        if ($this->loginRecords->removeElement($loginRecord) && $loginRecord->getUser() === $this) {
+            $loginRecord->setUser(null);
         }
 
         return $this;
