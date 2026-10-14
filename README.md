@@ -54,6 +54,31 @@ php bin/console doctrine:migrations:migrate
 php bin/console doctrine:fixtures:load   # données de démonstration
 ```
 
+> Si aucune migration n'existe encore, générez-la à partir des entités :
+> `php bin/console make:migration`.
+
+## Modèle de données
+
+L'application s'appuie sur trois entités Doctrine :
+
+| Entité | Description | Champs principaux |
+| --- | --- | --- |
+| `User` | Utilisateur de l'application (visiteur, bénévole, administrateur). | email, rôles, mot de passe, prénom, nom |
+| `Animal` | Animal accueilli au refuge. | nom, espèce, race, âge, description, statut, photo |
+| `AdoptionRequest` | Demande d'adoption déposée pour un animal. | animal, demandeur, contact, message, statut |
+
+Deux énumérations typent les états : `AnimalStatus` (disponible, en cours d'adoption,
+adopté) et `AdoptionRequestStatus` (nouvelle, en cours, acceptée, refusée).
+
+### Données de démonstration
+
+Le jeu de données (`AppFixtures`) crée deux comptes et plusieurs animaux :
+
+| Email | Mot de passe | Rôle |
+| --- | --- | --- |
+| `admin@refuge.test` | `password` | Administrateur |
+| `benevole@refuge.test` | `password` | Bénévole |
+
 ## Configuration
 
 Les variables d'environnement sont définies dans les fichiers `.env` :
@@ -120,7 +145,7 @@ front sont servis par **AssetMapper** (importmap natif) et le style repose sur *
 ## Feuille de route
 
 - [x] Feature 1 — Base du projet, layout Bootstrap 5 et page d'accueil.
-- [ ] Feature 2 — Modèle de données (User, Animal, AdoptionRequest).
+- [x] Feature 2 — Modèle de données (User, Animal, AdoptionRequest).
 - [ ] Feature 3 — Authentification et gestion des rôles.
 - [ ] Feature 4 — Catalogue public des animaux.
 - [ ] Feature 5 — Gestion des animaux (bénévoles).
