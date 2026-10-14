@@ -22,8 +22,12 @@ class AppFixtures extends Fixture
     {
         $admin = $this->createUser('admin@refuge.test', 'Alice', 'Martin', ['ROLE_ADMIN']);
         $volunteer = $this->createUser('benevole@refuge.test', 'Bruno', 'Petit', ['ROLE_VOLUNTEER']);
+        $camille = $this->createUser('camille@refuge.test', 'Camille', 'Durand', []);
+        $david = $this->createUser('david@refuge.test', 'David', 'Leroy', []);
         $manager->persist($admin);
         $manager->persist($volunteer);
+        $manager->persist($camille);
+        $manager->persist($david);
 
         $animals = [
             ['Rex', Species::DOG, 'Berger allemand', 4, 'Très affectueux et joueur, il s\'entend bien avec les enfants.', AnimalStatus::AVAILABLE],
@@ -50,20 +54,17 @@ class AppFixtures extends Fixture
 
         $request1 = (new AdoptionRequest())
             ->setAnimal($entities[0])
-            ->setApplicantName('Camille Durand')
-            ->setEmail('camille.durand@example.com')
-            ->setPhone('0612345678')
+            ->setUser($camille)
             ->setMessage('Bonjour, je souhaite adopter Rex. J\'ai un jardin clos.')
             ->setStatus(AdoptionRequestStatus::PENDING);
 
         $request2 = (new AdoptionRequest())
             ->setAnimal($entities[2])
-            ->setApplicantName('David Leroy')
-            ->setEmail('david.leroy@example.com')
+            ->setUser($david)
             ->setMessage('Bonjour, nous avons déjà un chien et cherchons un compagnon pour lui.')
             ->setStatus(AdoptionRequestStatus::IN_PROGRESS)
             ->setProcessedBy($volunteer)
-            ->setProcessedAt(new \DateTimeImmutable());
+            ->touch();
 
         $manager->persist($request1);
         $manager->persist($request2);

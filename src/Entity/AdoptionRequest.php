@@ -19,22 +19,13 @@ class AdoptionRequest
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?Animal $animal = null;
 
+    #[ORM\ManyToOne(inversedBy: 'adoptionRequests')]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    private ?User $user = null;
+
     #[ORM\ManyToOne(inversedBy: 'processedRequests')]
     #[ORM\JoinColumn(onDelete: 'SET NULL')]
     private ?User $processedBy = null;
-
-    #[ORM\Column(length: 120)]
-    #[Assert\NotBlank(message: 'Le nom est obligatoire.')]
-    #[Assert\Length(max: 120)]
-    private ?string $applicantName = null;
-
-    #[ORM\Column(length: 180)]
-    #[Assert\NotBlank(message: 'L\'email est obligatoire.')]
-    #[Assert\Email(message: 'L\'email n\'est pas valide.')]
-    private ?string $email = null;
-
-    #[ORM\Column(length: 30, nullable: true)]
-    private ?string $phone = null;
 
     #[ORM\Column(type: 'text', nullable: true)]
     #[Assert\Length(max: 2000)]
@@ -47,7 +38,7 @@ class AdoptionRequest
     private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
-    private ?\DateTimeImmutable $processedAt = null;
+    private ?\DateTimeImmutable $updatedAt = null;
 
     public function __construct()
     {
@@ -71,6 +62,18 @@ class AdoptionRequest
         return $this;
     }
 
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+
+    public function setUser(?User $user): static
+    {
+        $this->user = $user;
+
+        return $this;
+    }
+
     public function getProcessedBy(): ?User
     {
         return $this->processedBy;
@@ -79,42 +82,6 @@ class AdoptionRequest
     public function setProcessedBy(?User $processedBy): static
     {
         $this->processedBy = $processedBy;
-
-        return $this;
-    }
-
-    public function getApplicantName(): ?string
-    {
-        return $this->applicantName;
-    }
-
-    public function setApplicantName(string $applicantName): static
-    {
-        $this->applicantName = $applicantName;
-
-        return $this;
-    }
-
-    public function getEmail(): ?string
-    {
-        return $this->email;
-    }
-
-    public function setEmail(string $email): static
-    {
-        $this->email = $email;
-
-        return $this;
-    }
-
-    public function getPhone(): ?string
-    {
-        return $this->phone;
-    }
-
-    public function setPhone(?string $phone): static
-    {
-        $this->phone = $phone;
 
         return $this;
     }
@@ -148,14 +115,21 @@ class AdoptionRequest
         return $this->createdAt;
     }
 
-    public function getProcessedAt(): ?\DateTimeImmutable
+    public function getUpdatedAt(): ?\DateTimeImmutable
     {
-        return $this->processedAt;
+        return $this->updatedAt;
     }
 
-    public function setProcessedAt(?\DateTimeImmutable $processedAt): static
+    public function setUpdatedAt(?\DateTimeImmutable $updatedAt): static
     {
-        $this->processedAt = $processedAt;
+        $this->updatedAt = $updatedAt;
+
+        return $this;
+    }
+
+    public function touch(): static
+    {
+        $this->updatedAt = new \DateTimeImmutable();
 
         return $this;
     }

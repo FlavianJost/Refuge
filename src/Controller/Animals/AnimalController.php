@@ -22,7 +22,7 @@ class AnimalController extends AbstractController
         $status = '' !== $statusValue ? AnimalStatus::tryFrom($statusValue) : null;
         $species = '' !== $speciesValue ? Species::tryFrom($speciesValue) : null;
 
-        return $this->render('animal/index.html.twig', [
+        return $this->render('Animal/index.html.twig', [
             'animals' => $animalRepository->findByFilters($status, $species),
             'current_status' => $status,
             'current_species' => $species,
@@ -34,7 +34,7 @@ class AnimalController extends AbstractController
     #[Route('/animaux/{id}', name: 'app_animal_show', methods: ['GET'], requirements: ['id' => '\d+'])]
     public function show(Animal $animal): Response
     {
-        return $this->render('animal/show.html.twig', [
+        return $this->render('Animal/show.html.twig', [
             'animal' => $animal,
         ]);
     }

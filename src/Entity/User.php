@@ -41,16 +41,26 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;
 
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $lastLoginAt = null;
+
     /**
      * @var Collection<int, AdoptionRequest>
      */
     #[ORM\OneToMany(targetEntity: AdoptionRequest::class, mappedBy: 'processedBy')]
     private Collection $processedRequests;
 
+    /**
+     * @var Collection<int, AdoptionRequest>
+     */
+    #[ORM\OneToMany(targetEntity: AdoptionRequest::class, mappedBy: 'user')]
+    private Collection $adoptionRequests;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
         $this->processedRequests = new ArrayCollection();
+        $this->adoptionRequests = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -155,6 +165,45 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
+    }
+
+    public function getLastLoginAt(): ?\DateTimeImmutable
+    {
+        return $this->lastLoginAt;
+    }
+
+    public function setLastLoginAt(?\DateTimeImmutable $lastLoginAt): static
+    {
+        $this->lastLoginAt = $lastLoginAt;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, AdoptionRequest>
+     */
+    public function getAdoptionRequests(): Collection
+    {
+        return $this->adoptionRequests;
+    }
+
+    public function addAdoptionRequest(AdoptionRequest $adoptionRequest): static
+    {
+        if (!$this->adoptionRequests->contains($adoptionRequest)) {
+            $this->adoptionRequests->add($adoptionRequest);
+            $adoptionRequest->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAdoptionRequest(AdoptionRequest $adoptionRequest): static
+    {
+        if ($this->adoptionRequests->removeElement($adoptionRequest) && $adoptionRequest->getUser() === $this) {
+            $adoptionRequest->setUser(null);
+        }
+
+        return $this;
     }
 
     /**
