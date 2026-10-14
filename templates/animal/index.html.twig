@@ -1,0 +1,52 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Les animaux - Refuge Animalier{% endblock %}
+
+{% block body %}
+    <div class="container py-5">
+        <h1 class="h2 mb-4">Les animaux du refuge</h1>
+
+        <form method="get" class="row g-3 align-items-end mb-4">
+            <div class="col-sm-4">
+                <label class="form-label" for="species">Espèce</label>
+                <select name="species" id="species" class="form-select">
+                    <option value="">Toutes les espèces</option>
+                    {% for option in species_choices %}
+                        <option value="{{ option.value }}" {{ current_species and current_species.value == option.value ? 'selected' }}>
+                            {{ option.label() }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-sm-4">
+                <label class="form-label" for="status">Situation</label>
+                <select name="status" id="status" class="form-select">
+                    <option value="">Toutes les situations</option>
+                    {% for option in status_choices %}
+                        <option value="{{ option.value }}" {{ current_status and current_status.value == option.value ? 'selected' }}>
+                            {{ option.label() }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-sm-4 d-flex gap-2">
+                <button class="btn btn-primary" type="submit">Filtrer</button>
+                <a class="btn btn-outline-secondary" href="{{ path('app_animal_index') }}">Réinitialiser</a>
+            </div>
+        </form>
+
+        {% if animals is empty %}
+            <div class="alert alert-info" role="alert">Aucun animal ne correspond à votre recherche.</div>
+        {% else %}
+            <div class="row g-4">
+                {% for animal in animals %}
+                    <div class="col-md-6 col-lg-4">
+                        {% include 'animal/_card.html.twig' with { animal: animal } only %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

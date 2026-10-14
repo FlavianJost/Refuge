@@ -99,6 +99,15 @@ Les rôles sont hiérarchisés dans `security.yaml` :
 La protection CSRF est **sans état (stateless)** pour les formulaires et l'authentification
 (configuration dans `config/packages/csrf.yaml`).
 
+## Catalogue des animaux (public)
+
+- `GET /animaux` — liste des animaux avec filtres par **espèce** et **situation**
+  (`app_animal_index`). Affiche par défaut les animaux disponibles.
+- `GET /animaux/{id}` — fiche détaillée d'un animal (`app_animal_show`).
+
+Ces pages sont accessibles aux visiteurs non authentifiés. Les photographies sont servies
+depuis `public/uploads/animals/`.
+
 ## Configuration
 
 Les variables d'environnement sont définies dans les fichiers `.env` :
@@ -167,7 +176,7 @@ front sont servis par **AssetMapper** (importmap natif) et le style repose sur *
 - [x] Feature 1 — Base du projet, layout Bootstrap 5 et page d'accueil.
 - [x] Feature 2 — Modèle de données (User, Animal, AdoptionRequest).
 - [x] Feature 3 — Authentification et gestion des rôles.
-- [ ] Feature 4 — Catalogue public des animaux.
+- [x] Feature 4 — Catalogue public des animaux.
 - [ ] Feature 5 — Gestion des animaux (bénévoles).
 - [ ] Feature 6 — Demandes d'adoption.
 - [ ] Feature 7 — Back-office EasyAdmin.

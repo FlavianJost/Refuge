@@ -1,0 +1,53 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ animal.name }} - Refuge Animalier{% endblock %}
+
+{% block body %}
+    <div class="container py-5">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ path('homepage') }}">Accueil</a></li>
+                <li class="breadcrumb-item"><a href="{{ path('app_animal_index') }}">Les animaux</a></li>
+                <li class="breadcrumb-item active" aria-current="page">{{ animal.name }}</li>
+            </ol>
+        </nav>
+
+        <div class="row g-4">
+            <div class="col-md-5">
+                {% if animal.photo %}
+                    <img src="/uploads/animals/{{ animal.photo }}" class="img-fluid rounded shadow-sm" alt="{{ animal.name }}">
+                {% else %}
+                    <div class="bg-secondary bg-opacity-10 rounded d-flex align-items-center justify-content-center text-muted"
+                         style="min-height: 320px;">
+                        <span class="fs-5">Photo à venir</span>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="col-md-7">
+                <div class="d-flex justify-content-between align-items-start gap-2">
+                    <h1 class="h2 mb-1">{{ animal.name }}</h1>
+                    <span class="badge text-bg-{{ animal.status.badgeClass() }} fs-6">{{ animal.status.label() }}</span>
+                </div>
+
+                <ul class="list-unstyled text-muted my-3">
+                    <li><strong>Espèce :</strong> {{ animal.species.label() }}</li>
+                    {% if animal.breed %}<li><strong>Race :</strong> {{ animal.breed }}</li>{% endif %}
+                    {% if animal.age is not null %}<li><strong>Âge :</strong> {{ animal.age }} an{{ animal.age > 1 ? 's' }}</li>{% endif %}
+                </ul>
+
+                {% if animal.description %}
+                    <p>{{ animal.description|nl2br }}</p>
+                {% endif %}
+
+                {% if animal.available %}
+                    <a href="#" class="btn btn-primary btn-lg mt-2">Demander l'adoption</a>
+                {% else %}
+                    <div class="alert alert-secondary mt-2 mb-0" role="alert">
+                        Cet animal n'est pas disponible à l'adoption pour le moment.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
