@@ -27,6 +27,17 @@
                                 </div>
                             </div>
 
+                            <hr class="my-4">
+
+                            <h2 class="h5 mb-1">Changer de mot de passe</h2>
+                            <p class="text-muted small mb-3">
+                                Laissez ces champs vides pour conserver votre mot de passe actuel.
+                            </p>
+                            <div class="row g-3">
+                                <div class="col-md-6">{{ form_row(form.currentPassword) }}</div>
+                                <div class="col-md-6">{{ form_row(form.plainPassword) }}</div>
+                            </div>
+
                             <div class="mt-4 d-flex gap-2">
                                 <button type="submit" class="btn btn-primary">Enregistrer</button>
                                 <a href="{{ path('app_profile') }}" class="btn btn-link">Annuler</a>

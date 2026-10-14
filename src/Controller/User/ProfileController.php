@@ -7,9 +7,12 @@ use App\Form\User\ProfileType;
 use App\Service\UserPhotoUploader;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\FormError;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -28,8 +31,12 @@ class ProfileController extends AbstractController
     }
 
     #[Route('/profil/modifier', name: 'app_profile_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, EntityManagerInterface $entityManager, UserPhotoUploader $photoUploader): Response
-    {
+    public function edit(
+        Request $request,
+        EntityManagerInterface $entityManager,
+        UserPhotoUploader $photoUploader,
+        UserPasswordHasherInterface $passwordHasher,
+    ): Response {
         /** @var User $user */
         $user = $this->getUser();
 
@@ -37,19 +44,47 @@ class ProfileController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $this->handlePhoto($form->get('photoFile')->getData(), $user, $photoUploader);
+            $this->handlePassword($form, $user, $passwordHasher);
 
-            $entityManager->flush();
+            if ($form->isValid()) {
+                $this->handlePhoto($form->get('photoFile')->getData(), $user, $photoUploader);
 
-            $this->addFlash('success', 'Votre profil a bien été mis à jour.');
+                $entityManager->flush();
 
-            return $this->redirectToRoute('app_profile');
+                $this->addFlash('success', 'Votre profil a bien été mis à jour.');
+
+                return $this->redirectToRoute('app_profile');
+            }
         }
 
         return $this->render('User/edit.html.twig', [
             'user' => $user,
             'form' => $form,
         ]);
+    }
+
+    private function handlePassword(FormInterface $form, User $user, UserPasswordHasherInterface $passwordHasher): void
+    {
+        $currentPassword = (string) $form->get('currentPassword')->getData();
+        $newPassword = (string) $form->get('plainPassword')->getData();
+
+        if ('' === $currentPassword && '' === $newPassword) {
+            return;
+        }
+
+        if (!$passwordHasher->isPasswordValid($user, $currentPassword)) {
+            $form->get('currentPassword')->addError(new FormError('Le mot de passe actuel est incorrect.'));
+
+            return;
+        }
+
+        if (\mb_strlen($newPassword) < 6) {
+            $form->get('plainPassword')->addError(new FormError('Le nouveau mot de passe doit contenir au moins 6 caractères.'));
+
+            return;
+        }
+
+        $user->setPassword($passwordHasher->hashPassword($user, $newPassword));
     }
 
     private function handlePhoto(?UploadedFile $file, User $user, UserPhotoUploader $uploader): void
