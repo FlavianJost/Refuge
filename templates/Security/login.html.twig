@@ -29,7 +29,7 @@
                                        autocomplete="current-password" required>
                             </div>
 
-                            <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+                            <input type="hidden" name="_csrf_token" data-controller="csrf-protection" value="{{ csrf_token('authenticate') }}">
 
                             <div class="d-grid">
                                 <button class="btn btn-primary btn-lg" type="submit">Se connecter</button>
