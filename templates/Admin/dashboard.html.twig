@@ -8,7 +8,7 @@
     {% set users_url = ea_url().setController('App\\Controller\\Admin\\UserCrudController').setAction('index') %}
     {% set donations_url = ea_url().setController('App\\Controller\\Admin\\DonationCrudController').setAction('index') %}
     {% set reviews_url = ea_url().setController('App\\Controller\\Admin\\ReviewCrudController').setAction('index') %}
-    {% set messages_url = ea_url().setController('App\\Controller\\Admin\\ContactMessageCrudController').setAction('index') %}
+    {% set messages_url = path('app_message_manage_index') %}
 
     <div class="row g-4">
         <div class="col-md-4">
@@ -75,12 +75,12 @@
         <div class="col-md-3">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body d-flex flex-column">
-                    <div class="text-uppercase text-muted small fw-bold">Messages</div>
-                    <div class="display-6 fw-bold mb-2">{{ contact_count }}</div>
-                    {% if contact_unhandled > 0 %}
-                        <span class="badge text-bg-warning mb-2 align-self-start">{{ contact_unhandled }} non traité{{ contact_unhandled > 1 ? 's' }}</span>
+                    <div class="text-uppercase text-muted small fw-bold">Messagerie</div>
+                    <div class="display-6 fw-bold mb-2">{{ conversation_count }}</div>
+                    {% if conversation_unread > 0 %}
+                        <span class="badge text-bg-warning mb-2 align-self-start">{{ conversation_unread }} non lu{{ conversation_unread > 1 ? 's' }}</span>
                     {% endif %}
-                    <a class="btn btn-sm btn-primary mt-auto" href="{{ messages_url }}">Voir les messages</a>
+                    <a class="btn btn-sm btn-primary mt-auto" href="{{ messages_url }}">Voir les conversations</a>
                 </div>
             </div>
         </div>
@@ -88,6 +88,6 @@
 
     <div class="alert alert-light border mt-4 mb-0">
         Bienvenue dans l'espace d'administration du refuge. Utilisez le menu de gauche pour gérer les animaux,
-        les demandes d'adoption, les dons, les avis, les messages de contact et les utilisateurs.
+        les demandes d'adoption, les dons, les avis, la messagerie et les utilisateurs.
     </div>
 {% endblock %}
