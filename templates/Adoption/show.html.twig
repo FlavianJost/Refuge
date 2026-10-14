@@ -62,7 +62,7 @@
                         {% if adoption_request.animal %}
                             <p class="mb-1"><strong>{{ adoption_request.animal.name }}</strong></p>
                             <p class="text-muted mb-2">{{ adoption_request.animal.species.label() }}</p>
-                            <a href="{{ path('app_animal_show', { id: adoption_request.animal.id }) }}" class="btn btn-sm btn-outline-secondary">Voir la fiche</a>
+                            <a href="{{ path('app_animal_show', { slug: adoption_request.animal.slug }) }}" class="btn btn-sm btn-outline-secondary">Voir la fiche</a>
                         {% else %}
                             <p class="text-muted mb-0">Animal supprimé.</p>
                         {% endif %}

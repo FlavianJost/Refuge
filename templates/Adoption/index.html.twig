@@ -44,7 +44,7 @@
                                 <td>{{ adoption_request.createdAt|date('d/m/Y H:i') }}</td>
                                 <td>
                                     {% if adoption_request.animal %}
-                                        <a href="{{ path('app_animal_show', { id: adoption_request.animal.id }) }}">{{ adoption_request.animal.name }}</a>
+                                        <a href="{{ path('app_animal_show', { slug: adoption_request.animal.slug }) }}">{{ adoption_request.animal.name }}</a>
                                     {% else %}
                                         —
                                     {% endif %}

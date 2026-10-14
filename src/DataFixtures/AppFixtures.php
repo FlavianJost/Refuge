@@ -8,14 +8,17 @@ use App\Entity\User;
 use App\Enum\AdoptionRequestStatus;
 use App\Enum\AnimalStatus;
 use App\Enum\Species;
+use App\Service\AnimalSlugger;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class AppFixtures extends Fixture
 {
-    public function __construct(private readonly UserPasswordHasherInterface $passwordHasher)
-    {
+    public function __construct(
+        private readonly UserPasswordHasherInterface $passwordHasher,
+        private readonly AnimalSlugger $animalSlugger,
+    ) {
     }
 
     public function load(ObjectManager $manager): void
@@ -36,6 +39,7 @@ class AppFixtures extends Fixture
             ['Biscuit', Species::RABBIT, 'Nain', 1, 'Petit et sociable, parfait pour un premier animal.', AnimalStatus::AVAILABLE],
             ['Kiwi', Species::BIRD, 'Perruche', 5, 'Bavarde et colorée, elle réclame de l\'attention.', AnimalStatus::ADOPTED],
             ['Noisette', Species::RODENT, 'Cochon d\'Inde', 2, 'Douce et tranquille, facile à vivre.', AnimalStatus::AVAILABLE],
+            ['Rex', Species::CAT, 'Européen', 1, 'Un second Rex, arrivé au refuge peu après le premier.', AnimalStatus::AVAILABLE],
         ];
 
         $entities = [];
@@ -48,7 +52,10 @@ class AppFixtures extends Fixture
                 ->setDescription($description)
                 ->setStatus($status);
 
+            $animal->setSlug($this->animalSlugger->generate($animal));
+
             $manager->persist($animal);
+            $manager->flush();
             $entities[] = $animal;
         }
 

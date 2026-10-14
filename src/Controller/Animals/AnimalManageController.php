@@ -6,6 +6,7 @@ use App\Entity\Animal;
 use App\Form\Animal\AnimalType;
 use App\Repository\AnimalRepository;
 use App\Service\AnimalPhotoUploader;
+use App\Service\AnimalSlugger;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -27,13 +28,14 @@ class AnimalManageController extends AbstractController
     }
 
     #[Route('/nouveau', name: 'new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager, AnimalPhotoUploader $photoUploader): Response
+    public function new(Request $request, EntityManagerInterface $entityManager, AnimalPhotoUploader $photoUploader, AnimalSlugger $animalSlugger): Response
     {
         $animal = new Animal();
         $form = $this->createForm(AnimalType::class, $animal);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $animal->setSlug($animalSlugger->generate($animal));
             $this->handlePhoto($form->get('photoFile')->getData(), $animal, $photoUploader);
 
             $entityManager->persist($animal);
@@ -50,12 +52,13 @@ class AnimalManageController extends AbstractController
     }
 
     #[Route('/{id}/modifier', name: 'edit', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]
-    public function edit(Request $request, Animal $animal, EntityManagerInterface $entityManager, AnimalPhotoUploader $photoUploader): Response
+    public function edit(Request $request, Animal $animal, EntityManagerInterface $entityManager, AnimalPhotoUploader $photoUploader, AnimalSlugger $animalSlugger): Response
     {
         $form = $this->createForm(AnimalType::class, $animal);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $animal->setSlug($animalSlugger->generate($animal));
             $this->handlePhoto($form->get('photoFile')->getData(), $animal, $photoUploader);
             $animal->touch();
 

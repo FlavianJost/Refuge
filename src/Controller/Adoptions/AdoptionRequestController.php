@@ -28,7 +28,7 @@ class AdoptionRequestController extends AbstractController
         if (!$animal->isAvailable()) {
             $this->addFlash('warning', 'Cet animal n\'est pas disponible à l\'adoption pour le moment.');
 
-            return $this->redirectToRoute('app_animal_show', ['id' => $animal->getId()]);
+            return $this->redirectToRoute('app_animal_show', ['slug' => $animal->getSlug()]);
         }
 
         $user = $this->getUser();
@@ -54,7 +54,7 @@ class AdoptionRequestController extends AbstractController
             if (null !== $existing) {
                 $this->addFlash('info', 'Vous avez déjà une demande en attente pour cet animal.');
 
-                return $this->redirectToRoute('app_animal_show', ['id' => $animal->getId()]);
+                return $this->redirectToRoute('app_animal_show', ['slug' => $animal->getSlug()]);
             }
 
             $entityManager->persist($adoptionRequest);
@@ -62,7 +62,7 @@ class AdoptionRequestController extends AbstractController
 
             $this->addFlash('success', 'Votre demande d\'adoption a bien été envoyée. Nous vous recontacterons rapidement.');
 
-            return $this->redirectToRoute('app_animal_show', ['id' => $animal->getId()]);
+            return $this->redirectToRoute('app_animal_show', ['slug' => $animal->getSlug()]);
         }
 
         return $this->render('Adoption/new.html.twig', [
