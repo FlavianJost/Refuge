@@ -23,7 +23,7 @@ class MessageManageController extends AbstractController
     #[Route('', name: 'index', methods: ['GET'])]
     public function index(ConversationRepository $conversationRepository): Response
     {
-        return $this->render('Message/manage/index.html.twig', [
+        return $this->render('Message/manage.html.twig', [
             'conversations' => $conversationRepository->findAllRecent(),
         ]);
     }

@@ -23,7 +23,7 @@ class AnimalManageController extends AbstractController
     #[Route('', name: 'index', methods: ['GET'])]
     public function index(AnimalRepository $animalRepository): Response
     {
-        return $this->render('Animal/manage/index.html.twig', [
+        return $this->render('Animal/manage.html.twig', [
             'animals' => $animalRepository->findBy([], ['name' => 'ASC']),
         ]);
     }
