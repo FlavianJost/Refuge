@@ -58,10 +58,18 @@ class Animal
     #[ORM\OneToMany(targetEntity: AdoptionRequest::class, mappedBy: 'animal', cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $adoptionRequests;
 
+    /**
+     * @var Collection<int, AnimalPhoto>
+     */
+    #[ORM\OneToMany(targetEntity: AnimalPhoto::class, mappedBy: 'animal', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[ORM\OrderBy(['createdAt' => 'ASC', 'id' => 'ASC'])]
+    private Collection $photos;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
         $this->adoptionRequests = new ArrayCollection();
+        $this->photos = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -216,6 +224,33 @@ class Animal
     {
         if ($this->adoptionRequests->removeElement($request) && $request->getAnimal() === $this) {
             $request->setAnimal(null);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, AnimalPhoto>
+     */
+    public function getPhotos(): Collection
+    {
+        return $this->photos;
+    }
+
+    public function addPhoto(AnimalPhoto $photo): static
+    {
+        if (!$this->photos->contains($photo)) {
+            $this->photos->add($photo);
+            $photo->setAnimal($this);
+        }
+
+        return $this;
+    }
+
+    public function removePhoto(AnimalPhoto $photo): static
+    {
+        if ($this->photos->removeElement($photo) && $photo->getAnimal() === $this) {
+            $photo->setAnimal(null);
         }
 
         return $this;

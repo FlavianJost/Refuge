@@ -14,8 +14,32 @@
 
         <div class="row g-4">
             <div class="col-md-5">
+                {% set gallery = animal.photos|map(p => p.filename) %}
                 {% if animal.photo %}
-                    <img src="/uploads/animals/{{ animal.photo }}" class="img-fluid rounded shadow-sm" alt="{{ animal.name }}">
+                    {% set gallery = [animal.photo]|merge(gallery) %}
+                {% endif %}
+
+                {% if gallery is not empty %}
+                    <div id="animalGallery" class="carousel slide" data-bs-ride="carousel">
+                        <div class="carousel-inner rounded shadow-sm">
+                            {% for filename in gallery %}
+                                <div class="carousel-item {{ loop.first ? 'active' }}">
+                                    <img src="/uploads/animals/{{ filename }}" class="d-block w-100"
+                                         alt="{{ animal.name }}" style="height: 420px; object-fit: cover;">
+                                </div>
+                            {% endfor %}
+                        </div>
+                        {% if gallery|length > 1 %}
+                            <button class="carousel-control-prev" type="button" data-bs-target="#animalGallery" data-bs-slide="prev">
+                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                <span class="visually-hidden">Précédent</span>
+                            </button>
+                            <button class="carousel-control-next" type="button" data-bs-target="#animalGallery" data-bs-slide="next">
+                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                <span class="visually-hidden">Suivant</span>
+                            </button>
+                        {% endif %}
+                    </div>
                 {% else %}
                     <div class="bg-secondary bg-opacity-10 rounded d-flex align-items-center justify-content-center text-muted"
                          style="min-height: 320px;">

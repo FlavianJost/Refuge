@@ -107,12 +107,13 @@ php bin/console asset-map:compile
 
 ## Modèle de données
 
-L'application s'appuie sur **sept entités Doctrine** :
+L'application s'appuie sur **huit entités Doctrine** :
 
 | Entité | Description | Champs principaux |
 | --- | --- | --- |
 | `User` | Utilisateur de l'application (visiteur, bénévole, administrateur). | email, rôles, mot de passe, prénom, nom, photo, dernière connexion, secret TOTP |
 | `Animal` | Animal accueilli au refuge. | nom, slug, espèce, race, âge, description, statut, photo |
+| `AnimalPhoto` | Photo supplémentaire rattachée à la galerie d'un animal (la photo principale reste portée par `Animal`). | animal, nom de fichier, date |
 | `AdoptionRequest` | Demande d'adoption déposée par un utilisateur pour un animal. | animal, utilisateur, message, statut, traitement |
 | `Donation` | Don effectué via la page de démonstration (paiement simulé). | montant (en centimes), donateur, email, message, statut, date |
 | `Review` | Avis publié par un utilisateur sur le refuge. | utilisateur, note (1 à 5), commentaire, date |
@@ -197,7 +198,9 @@ Le slug est généré à partir du nom via `Symfony\Component\String\Slugger\Slu
 un suffixe numérique est ajouté pour garantir l'unicité (`rex`, `rex-2`, `rex-3`, ...).
 
 Ces pages sont accessibles aux visiteurs non authentifiés. Les photographies sont servies depuis
-`public/uploads/animals/`.
+`public/uploads/animals/`. La fiche d'un animal présente une **galerie** : la photo principale
+(`Animal.photo`) suivie des photos supplémentaires de la galerie (entité `AnimalPhoto`), affichées
+dans un carrousel.
 
 ## Demandes d'adoption
 
@@ -306,11 +309,15 @@ Espace réservé aux utilisateurs disposant du rôle `ROLE_VOLUNTEER` (et `ROLE_
 - `GET /gestion/animaux` (`app_animal_manage_index`) — tableau de bord des animaux.
 - `GET|POST /gestion/animaux/nouveau` (`app_animal_manage_new`) — ajout d'un animal.
 - `GET|POST /gestion/animaux/{id}/modifier` (`app_animal_manage_edit`) — édition.
+- `POST /gestion/animaux/{id}/photos/{photo}/supprimer` (`app_animal_manage_delete_photo`) —
+  suppression d'une photo de la galerie.
 - `POST /gestion/animaux/{id}/supprimer` (`app_animal_manage_delete`) — suppression avec jeton CSRF.
 
 L'upload de photo est pris en charge par le service `App\Service\AnimalPhotoUploader` : les fichiers
-(JPEG, PNG ou WebP, 4 Mo max) sont enregistrés dans `public/uploads/animals/`. La photo précédente
-est supprimée lors d'un remplacement ou de la suppression de l'animal.
+(JPEG, PNG ou WebP, 4 Mo max) sont enregistrés dans `public/uploads/animals/`. La photo principale
+précédente est supprimée lors d'un remplacement. Le formulaire permet également d'**ajouter
+plusieurs photos** à la galerie d'un animal en une seule fois ; chaque photo y est ensuite listée et
+peut être supprimée individuellement.
 
 ### Demandes d'adoption et messagerie
 

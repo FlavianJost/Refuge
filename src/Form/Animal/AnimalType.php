@@ -13,6 +13,7 @@ use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\All;
 use Symfony\Component\Validator\Constraints\File;
 
 class AnimalType extends AbstractType
@@ -49,7 +50,7 @@ class AnimalType extends AbstractType
                 'choice_label' => static fn (AnimalStatus $status): string => $status->label(),
             ])
             ->add('photoFile', FileType::class, [
-                'label' => 'Photographie',
+                'label' => 'Photo principale',
                 'mapped' => false,
                 'required' => false,
                 'constraints' => [
@@ -58,6 +59,22 @@ class AnimalType extends AbstractType
                         mimeTypes: ['image/jpeg', 'image/png', 'image/webp'],
                         mimeTypesMessage: 'Merci de téléverser une image valide (JPEG, PNG ou WebP).',
                     ),
+                ],
+            ])
+            ->add('photosFiles', FileType::class, [
+                'label' => 'Ajouter des photos à la galerie',
+                'mapped' => false,
+                'required' => false,
+                'multiple' => true,
+                'attr' => ['accept' => 'image/*'],
+                'constraints' => [
+                    new All([
+                        new File(
+                            maxSize: '4M',
+                            mimeTypes: ['image/jpeg', 'image/png', 'image/webp'],
+                            mimeTypesMessage: 'Merci de téléverser une image valide (JPEG, PNG ou WebP).',
+                        ),
+                    ]),
                 ],
             ]);
     }

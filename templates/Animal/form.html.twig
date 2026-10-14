@@ -14,6 +14,30 @@
             {% endif %}
             {{ form_row(form.photoFile) }}
         </div>
+        <div class="col-12">{{ form_row(form.photosFiles) }}</div>
+        {% if animal is defined %}
+            <div class="col-12">
+                <label class="form-label d-block">Galerie ({{ animal.photos|length }} photo{{ animal.photos|length > 1 ? 's' }})</label>
+                {% if animal.photos is empty %}
+                    <p class="text-muted small mb-0">Aucune photo dans la galerie pour le moment.</p>
+                {% else %}
+                    <div class="d-flex flex-wrap gap-3">
+                        {% for photo in animal.photos %}
+                            <div class="text-center">
+                                <img src="/uploads/animals/{{ photo.filename }}" alt="{{ animal.name }}"
+                                     class="img-thumbnail d-block" style="height: 110px; width: 110px; object-fit: cover;">
+                                <form method="post"
+                                      action="{{ path('app_animal_manage_delete_photo', { id: animal.id, photo: photo.id }) }}"
+                                      class="mt-1" onsubmit="return confirm('Supprimer cette photo ?');">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete-animal-photo-' ~ photo.id) }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Supprimer</button>
+                                </form>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        {% endif %}
         <div class="col-12">{{ form_row(form.description) }}</div>
     </div>
 

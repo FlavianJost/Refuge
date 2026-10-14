@@ -34,6 +34,9 @@
                                     {% else %}
                                         <span class="text-muted">—</span>
                                     {% endif %}
+                                    {% if animal.photos|length %}
+                                        <div class="small text-muted mt-1">{{ animal.photos|length }} photo{{ animal.photos|length > 1 ? 's' }}</div>
+                                    {% endif %}
                                 </td>
                                 <td>{{ animal.name }}</td>
                                 <td>{{ animal.species.label() }}</td>

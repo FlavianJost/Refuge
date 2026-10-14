@@ -3,6 +3,7 @@
 namespace App\Controller\Animals;
 
 use App\Entity\Animal;
+use App\Entity\AnimalPhoto;
 use App\Form\Animal\AnimalType;
 use App\Repository\AnimalRepository;
 use App\Service\AnimalPhotoUploader;
@@ -37,6 +38,7 @@ class AnimalManageController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $animal->setSlug($animalSlugger->generate($animal));
             $this->handlePhoto($form->get('photoFile')->getData(), $animal, $photoUploader);
+            $this->handleGalleryPhotos($form->get('photosFiles')->getData(), $animal, $photoUploader);
 
             $entityManager->persist($animal);
             $entityManager->flush();
@@ -60,6 +62,7 @@ class AnimalManageController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $animal->setSlug($animalSlugger->generate($animal));
             $this->handlePhoto($form->get('photoFile')->getData(), $animal, $photoUploader);
+            $this->handleGalleryPhotos($form->get('photosFiles')->getData(), $animal, $photoUploader);
             $animal->touch();
 
             $entityManager->flush();
@@ -81,6 +84,10 @@ class AnimalManageController extends AbstractController
         if ($this->isCsrfTokenValid('delete-animal-'.$animal->getId(), (string) $request->request->get('_token'))) {
             $photoUploader->remove($animal->getPhoto());
 
+            foreach ($animal->getPhotos() as $photo) {
+                $photoUploader->remove($photo->getFilename());
+            }
+
             $entityManager->remove($animal);
             $entityManager->flush();
 
@@ -92,6 +99,26 @@ class AnimalManageController extends AbstractController
         return $this->redirectToRoute('app_animal_manage_index');
     }
 
+    #[Route('/{id}/photos/{photo}/supprimer', name: 'delete_photo', methods: ['POST'], requirements: ['id' => '\d+', 'photo' => '\d+'])]
+    public function deletePhoto(Request $request, Animal $animal, AnimalPhoto $photo, EntityManagerInterface $entityManager, AnimalPhotoUploader $photoUploader): Response
+    {
+        if ($photo->getAnimal() !== $animal) {
+            throw $this->createNotFoundException('Cette photo n\'appartient pas à cet animal.');
+        }
+
+        if ($this->isCsrfTokenValid('delete-animal-photo-'.$photo->getId(), (string) $request->request->get('_token'))) {
+            $photoUploader->remove($photo->getFilename());
+            $animal->removePhoto($photo);
+            $entityManager->flush();
+
+            $this->addFlash('success', 'La photo a bien été supprimée.');
+        } else {
+            $this->addFlash('danger', 'Action non autorisée.');
+        }
+
+        return $this->redirectToRoute('app_animal_manage_edit', ['id' => $animal->getId()]);
+    }
+
     private function handlePhoto(?UploadedFile $file, Animal $animal, AnimalPhotoUploader $uploader): void
     {
         if (null === $file) {
@@ -100,5 +127,25 @@ class AnimalManageController extends AbstractController
 
         $uploader->remove($animal->getPhoto());
         $animal->setPhoto($uploader->upload($file));
+    }
+
+    /**
+     * @param iterable<UploadedFile>|null $files
+     */
+    private function handleGalleryPhotos(?iterable $files, Animal $animal, AnimalPhotoUploader $uploader): void
+    {
+        if (null === $files) {
+            return;
+        }
+
+        foreach ($files as $file) {
+            if (!$file instanceof UploadedFile || !$file->isValid()) {
+                continue;
+            }
+
+            $photo = new AnimalPhoto();
+            $photo->setFilename($uploader->upload($file));
+            $animal->addPhoto($photo);
+        }
     }
 }
