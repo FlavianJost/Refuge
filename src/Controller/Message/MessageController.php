@@ -8,6 +8,7 @@ use App\Entity\User;
 use App\Form\Message\MessageType;
 use App\Repository\ConversationRepository;
 use App\Repository\MessageRepository;
+use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -25,6 +26,7 @@ class MessageController extends AbstractController
         Request $request,
         ConversationRepository $conversationRepository,
         MessageRepository $messageRepository,
+        UserRepository $userRepository,
         EntityManagerInterface $entityManager,
     ): Response {
         $user = $this->getUser();
@@ -66,6 +68,7 @@ class MessageController extends AbstractController
             'conversation' => $conversation,
             'messages' => null !== $conversation ? $messageRepository->findByConversation($conversation) : [],
             'form' => $form,
+            'refugeOnline' => $userRepository->hasOnlineStaff(),
         ]);
     }
 
@@ -96,7 +99,7 @@ class MessageController extends AbstractController
         }
 
         return $this->json([
-            'html' => $this->renderView('Message/_messages.html.twig', [
+            'html' => $this->renderView('Message/messages.html.twig', [
                 'messages' => $messages,
                 'viewerIsStaff' => false,
             ]),

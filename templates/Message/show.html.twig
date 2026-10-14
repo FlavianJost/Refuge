@@ -17,6 +17,15 @@
                 <h1 class="h2 mb-1">Conversation</h1>
                 <p class="text-muted">
                     Avec <strong>{{ conversation.user.fullName }}</strong> ({{ conversation.user.email }})
+                    {% if conversation.user.isOnline %}
+                        <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle">
+                            <span class="d-inline-block rounded-circle bg-success me-1" style="width: 8px; height: 8px;"></span>En ligne
+                        </span>
+                    {% else %}
+                        <span class="badge bg-secondary-subtle text-secondary-emphasis border">
+                            <span class="d-inline-block rounded-circle bg-secondary me-1" style="width: 8px; height: 8px;"></span>Hors ligne
+                        </span>
+                    {% endif %}
                 </p>
 
                 <div class="card border-0 shadow-sm">
@@ -28,7 +37,7 @@
                              data-message-poll-url-value="{{ path('app_message_manage_latest', { id: conversation.id }) }}"
                              data-message-poll-after-value="{{ messages is not empty ? messages|last.id : 0 }}">
                             <div data-message-poll-target="list">
-                                {% include 'Message/_messages.html.twig' with { messages: messages, viewerIsStaff: true } only %}
+                                {% include 'Message/messages.html.twig' with { messages: messages, viewerIsStaff: true } only %}
                             </div>
                         </div>
 

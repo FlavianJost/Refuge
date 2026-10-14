@@ -56,6 +56,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TotpTwo
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $lastLoginAt = null;
 
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $lastSeenAt = null;
+
     /**
      * @var Collection<int, AdoptionRequest>
      */
@@ -202,6 +205,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TotpTwo
         return $name !== '' ? $name : (string) $this->email;
     }
 
+    public function getInitials(): string
+    {
+        $initials = mb_substr((string) $this->firstName, 0, 1).mb_substr((string) $this->lastName, 0, 1);
+
+        if ('' === $initials) {
+            $initials = mb_substr((string) $this->email, 0, 1);
+        }
+
+        return mb_strtoupper($initials);
+    }
+
     public function __toString(): string
     {
         return $this->getFullName();
@@ -222,6 +236,27 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TotpTwo
         $this->lastLoginAt = $lastLoginAt;
 
         return $this;
+    }
+
+    public function getLastSeenAt(): ?\DateTimeImmutable
+    {
+        return $this->lastSeenAt;
+    }
+
+    public function setLastSeenAt(?\DateTimeImmutable $lastSeenAt): static
+    {
+        $this->lastSeenAt = $lastSeenAt;
+
+        return $this;
+    }
+
+    public function isOnline(int $thresholdSeconds = 300): bool
+    {
+        if (null === $this->lastSeenAt) {
+            return false;
+        }
+
+        return $this->lastSeenAt >= new \DateTimeImmutable(sprintf('-%d seconds', $thresholdSeconds));
     }
 
     /**

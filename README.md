@@ -36,7 +36,8 @@ administrateur).
 - Espace profil : informations du compte, modification des données et photo de profil,
   changement de mot de passe et suivi de ses demandes.
 - Messagerie interne : fil de discussion entre chaque utilisateur et l'équipe du refuge,
-  avec rafraîchissement automatique des nouveaux messages.
+  avec avatars des interlocuteurs, statut en ligne/hors ligne et rafraîchissement automatique
+  des nouveaux messages.
 - Authentification à deux facteurs (TOTP) activable depuis le profil.
 - Avis sur le refuge : consultation publique et dépôt par les utilisateurs connectés.
 - Page de don (démonstration) avec enregistrement des dons en base.
@@ -302,6 +303,13 @@ Les échanges sont enregistrés dans les tables `conversation` et `message` (ent
 automatiquement toutes les quelques secondes par un contrôleur Stimulus
 (`assets/controllers/message_poll_controller.js`), ce qui donne une impression de discussion en
 direct, sans WebSocket.
+
+Les interlocuteurs sont identifiés par un **avatar** (photo de profil, à défaut les initiales) et un
+**statut en ligne / hors ligne**. Ce statut s'appuie sur la colonne `last_seen_at` de l'utilisateur,
+mise à jour à chaque requête authentifiée par `src/EventListener/UserActivityListener.php` (au plus
+une fois par minute). Un utilisateur est considéré en ligne s'il a été vu il y a moins de cinq
+minutes ; côté utilisateur, l'équipe du refuge est affichée comme en ligne si au moins un bénévole
+l'est.
 
 ## Avis sur le refuge
 
