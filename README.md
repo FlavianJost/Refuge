@@ -29,9 +29,11 @@ demandes d'adoption et d'organiser les niveaux d'accès (visiteur, bénévole, a
 
 - PHP >= 8.2 avec les extensions `ctype`, `iconv` (fournies avec Symfony Flex).
 - Composer 2.
-- Node.js >= 18 et npm (compilation des assets via Webpack Encore).
 - Un serveur de base de données MySQL/MariaDB (ou SQLite pour un démarrage rapide).
 - Symfony CLI (optionnel, mais recommandé).
+
+Aucune étape de build front n'est nécessaire : les assets sont gérés par **AssetMapper**
+(importmap natif, sans Node.js).
 
 ## Installation
 
@@ -43,15 +45,10 @@ cd Refuge
 # 2. Installer les dépendances PHP
 composer install
 
-# 3. Installer les dépendances front
-npm install
+# 3. Télécharger les assets front (Bootstrap 5, Stimulus, Turbo)
+php bin/console importmap:install
 
-# 4. Compiler les assets
-npm run dev        # développement
-# ou
-npm run build      # production
-
-# 5. Préparer la base de données
+# 4. Préparer la base de données
 php bin/console doctrine:database:create
 php bin/console doctrine:migrations:migrate
 php bin/console doctrine:fixtures:load   # données de démonstration
@@ -83,19 +80,20 @@ php -S localhost:8000 -t public
 
 L'application est ensuite accessible sur `http://localhost:8000`.
 
-En développement, pour recompiler les assets automatiquement :
+Les assets sont servis dynamiquement en développement. Pour la production, compilez-les :
 
 ```bash
-npm run watch
+php bin/console asset-map:compile
 ```
 
 ## Structure du projet
 
 ```
-assets/            # Sources JS/CSS (Bootstrap 5, styles du thème) compilées par Encore
+assets/            # Sources JS/CSS (Bootstrap 5, styles du thème) servies par AssetMapper
+importmap.php      # Déclaration des paquets front (bootstrap, stimulus, turbo...)
 config/            # Configuration Symfony (packages, routes, services)
 migrations/        # Migrations Doctrine
-public/            # Point d'entrée (index.php) et assets compilés (build/)
+public/            # Point d'entrée (index.php) et assets compilés (assets/)
 src/
   Controller/      # Contrôleurs
   Entity/          # Entités Doctrine
@@ -107,14 +105,14 @@ tests/             # Tests unitaires et fonctionnels
 
 Le projet adopte le pattern **MVC**, avec les entités Doctrine comme modèle, les
 contrôleurs Symfony comme couche de contrôle et les templates Twig pour la vue. Les assets
-front sont compilés avec **Webpack Encore** et le style repose sur **Bootstrap 5**.
+front sont servis par **AssetMapper** (importmap natif) et le style repose sur **Bootstrap 5**.
 
 ## Stack technique
 
 - **Symfony 7.4** — framework principal.
 - **Doctrine ORM** — persistance et migrations.
 - **Twig** — moteur de templates.
-- **Bootstrap 5** via **Webpack Encore** — interface responsive.
+- **AssetMapper + Bootstrap 5** — gestion des assets et interface responsive.
 - **EasyAdmin 5** — back-office d'administration.
 - **HWIOAuthBundle** — authentification via fournisseurs OAuth (Google).
 - **PHPUnit** — tests.
