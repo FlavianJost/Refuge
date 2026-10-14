@@ -1,0 +1,71 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Faire un don - Refuge Animalier{% endblock %}
+
+{% block body %}
+    <div class="container py-5">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ path('homepage') }}">Accueil</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Faire un don</li>
+            </ol>
+        </nav>
+
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="text-center mb-4">
+                    <h1 class="h2">Soutenir le refuge</h1>
+                    <p class="lead text-muted mb-0">
+                        Votre don aide à nourrir, soigner et protéger les animaux qui nous sont confiés.
+                    </p>
+                </div>
+
+                <div class="alert alert-warning" role="alert">
+                    <strong>Page de démonstration.</strong> Aucun paiement réel n'est effectué et aucune donnée
+                    bancaire n'est transmise ni enregistrée.
+                </div>
+
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        {{ form_start(form) }}
+                            <h2 class="h5 mb-3">Votre don</h2>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    {{ form_row(form.amount) }}
+                                </div>
+                                <div class="col-md-6">
+                                    {{ form_row(form.donorName) }}
+                                </div>
+                                <div class="col-12">
+                                    {{ form_row(form.donorEmail) }}
+                                </div>
+                                <div class="col-12">
+                                    {{ form_row(form.message) }}
+                                </div>
+                            </div>
+
+                            <h2 class="h5 mt-4 mb-3">Coordonnées bancaires (fictives)</h2>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    {{ form_row(form.cardNumber) }}
+                                </div>
+                                <div class="col-md-3">
+                                    {{ form_row(form.cardExpiry) }}
+                                </div>
+                                <div class="col-md-3">
+                                    {{ form_row(form.cardCvc) }}
+                                </div>
+                            </div>
+
+                            <div class="d-grid mt-4">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    Faire un don
+                                </button>
+                            </div>
+                        {{ form_end(form) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
