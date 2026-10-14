@@ -141,7 +141,12 @@ libellés français dans les formulaires, les listes et les filtres.
 ### Données de démonstration
 
 Le jeu de données (`AppFixtures`) crée des comptes, des animaux (dont deux homonymes pour illustrer
-l'unicité des slugs) et des demandes d'adoption :
+l'unicité des slugs), leurs photos de couverture et de galerie, un compteur de vues, des dossiers
+médicaux, des demandes d'adoption (avec questionnaire, parcours et rendez-vous de visite), un
+historique de connexions et des conversations de messagerie. Les photos de démonstration sont
+générées à la volée (extension `gd`) dans `public/uploads/`.
+
+Les comptes disponibles sont :
 
 | Email | Mot de passe | Rôle |
 | --- | --- | --- |
