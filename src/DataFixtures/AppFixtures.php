@@ -71,8 +71,9 @@ class AppFixtures extends Fixture
 
         $manager->flush();
 
-        // [nom, espèce, race, âge, description, statut, vues, URL de couverture, URLs de galerie]
-        // Renseigne les URLs des images : les fixtures les téléchargent dans public/uploads/animals/.
+        // [nom, espèce, race, âge, description, statut, vues, couverture, galerie]
+        // Couverture/galerie : une URL (téléchargée au chargement) ou un simple nom de fichier
+        // déjà déposé dans public/uploads/animals/.
         $animals = [
             ['Rex', Species::DOG, 'Berger allemand', 4, 'Très affectueux et joueur, il s\'entend bien avec les enfants.', AnimalStatus::AVAILABLE, 128, 'https://tse2.mm.bing.net/th/id/OIP.dJ3hELZeka2JBXFY3O47NgHaD8?r=0&pid=Api', []],
             ['Mimi', Species::CAT, 'Européen', 2, 'Calme et câline, elle adore les siestes au soleil.', AnimalStatus::AVAILABLE, 74, 'https://tse3.mm.bing.net/th/id/OIP.mXRYUkd_RBdP5l-0hFOLNQHaFj?r=0&pid=Api', []],
@@ -81,10 +82,11 @@ class AppFixtures extends Fixture
             ['Kiwi', Species::BIRD, 'Perruche', 5, 'Bavarde et colorée, elle réclame de l\'attention.', AnimalStatus::ADOPTED, 39, 'https://tse3.mm.bing.net/th/id/OIP.Ct8gRWSHnCcLr7ozTKmePAHaIp?r=0&pid=Api', []],
             ['Noisette', Species::RODENT, 'Cochon d\'Inde', 2, 'Douce et tranquille, facile à vivre.', AnimalStatus::AVAILABLE, 17, 'https://tse2.mm.bing.net/th/id/OIP.IsVJynBl6INzbzCGnbpbYAHaE7?r=0&pid=Api', []],
             ['Rex', Species::CAT, 'Européen', 1, 'Un second Rex, arrivé au refuge peu après le premier.', AnimalStatus::AVAILABLE, 9, 'https://tse3.mm.bing.net/th/id/OIP.qb7i0av0rM2I1XUqs0l7vgHaD_?r=0&pid=Api', []],
+            ['Rubye', Species::DOG, 'Cavalier King Charles', 5, 'Petite Cavalier King Charles câline et sociable, elle cherche une famille calme et attentionnée.', AnimalStatus::AVAILABLE, 34, 'rubye-9606734990821175134570183867856034207350069208798389195347490125.jpg', []],
         ];
 
         $entities = [];
-        foreach ($animals as [$name, $species, $breed, $age, $description, $status, $views, $coverUrl, $galleryUrls]) {
+        foreach ($animals as [$name, $species, $breed, $age, $description, $status, $views, $cover, $gallery]) {
             $animal = (new Animal())
                 ->setName($name)
                 ->setSpecies($species)
@@ -99,17 +101,17 @@ class AppFixtures extends Fixture
 
             $animal->setSlug($this->animalSlugger->generate($animal));
 
-            if (null !== $coverUrl) {
-                $coverFile = $this->downloadImage($coverUrl, $animal->getSlug());
-                if (null !== $coverFile) {
-                    $animal->setPhoto($coverFile);
+            if (null !== $cover) {
+                $filename = $this->resolveImage($cover, $animal->getSlug());
+                if (null !== $filename) {
+                    $animal->setPhoto($filename);
                 }
             }
 
             $position = 1;
-            foreach ($galleryUrls as $galleryUrl) {
+            foreach ($gallery as $source) {
                 ++$position;
-                $filename = $this->downloadImage($galleryUrl, $animal->getSlug().'-'.$position);
+                $filename = $this->resolveImage($source, $animal->getSlug().'-'.$position);
                 if (null !== $filename) {
                     $animal->addPhoto((new AnimalPhoto())->setFilename($filename));
                 }
@@ -267,6 +269,19 @@ class AppFixtures extends Fixture
         $user->setPassword($this->passwordHasher->hashPassword($user, 'password'));
 
         return $user;
+    }
+
+    /**
+     * Résout une source d'image : télécharge une URL, ou renvoie tel quel le nom d'un fichier
+     * déjà déposé dans public/uploads/animals/.
+     */
+    private function resolveImage(string $source, string $basename): ?string
+    {
+        if (str_starts_with($source, 'http://') || str_starts_with($source, 'https://')) {
+            return $this->downloadImage($source, $basename);
+        }
+
+        return $source;
     }
 
     /**
