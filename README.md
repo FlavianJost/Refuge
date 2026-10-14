@@ -20,6 +20,7 @@ demandes d'adoption et d'organiser les niveaux d'accès (visiteur, bénévole, a
 
 - Consultation publique des animaux accueillis et de leur fiche détaillée.
 - Dépôt d'une demande d'adoption par les utilisateurs connectés.
+- Espace profil : informations du compte et suivi de ses demandes d'adoption.
 - Gestion des animaux (ajout, modification, statut) par les membres autorisés.
 - Suivi et traitement des demandes d'adoption par les membres.
 - Niveaux d'accès : visiteur, bénévole, administrateur.
@@ -201,7 +202,7 @@ src/
   Service/         # Services applicatifs (upload, etc.)
   EventListener/   # Écouteurs d'événements (connexion)
   DataFixtures/    # Jeu de données de démonstration
-templates/         # Templates Twig (dossiers par domaine, base + partials)
+templates/         # Templates Twig (layout de base + dossiers par domaine)
 tests/             # Tests unitaires et fonctionnels
 ```
 
@@ -227,6 +228,7 @@ front sont servis par **AssetMapper** (importmap natif) et le style repose sur *
 - [x] Feature 4 — Catalogue public des animaux.
 - [x] Feature 5 — Gestion des animaux (bénévoles).
 - [x] Feature 6 — Demandes d'adoption.
+- [x] Profil utilisateur.
 - [ ] Feature 7 — Back-office EasyAdmin.
 - [ ] Feature 8 — Connexion Google (OAuth).
 - [ ] Feature 9 — Tests unitaires et fonctionnels.

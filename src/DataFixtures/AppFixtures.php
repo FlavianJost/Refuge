@@ -22,8 +22,8 @@ class AppFixtures extends Fixture
     {
         $admin = $this->createUser('admin@refuge.test', 'Alice', 'Martin', ['ROLE_ADMIN']);
         $volunteer = $this->createUser('benevole@refuge.test', 'Bruno', 'Petit', ['ROLE_VOLUNTEER']);
-        $camille = $this->createUser('camille@refuge.test', 'Camille', 'Durand', []);
-        $david = $this->createUser('david@refuge.test', 'David', 'Leroy', []);
+        $camille = $this->createUser('camille@refuge.test', 'Camille', 'Durand',['ROLE_USER']);
+        $david = $this->createUser('david@refuge.test', 'David', 'Leroy', ['ROLE_USER']);
         $manager->persist($admin);
         $manager->persist($volunteer);
         $manager->persist($camille);
