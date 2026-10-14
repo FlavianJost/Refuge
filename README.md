@@ -20,7 +20,7 @@ demandes d'adoption et d'organiser les niveaux d'accès (visiteur, bénévole, a
 
 - Consultation publique des animaux accueillis et de leur fiche détaillée.
 - Dépôt d'une demande d'adoption par les utilisateurs connectés.
-- Espace profil : informations du compte et suivi de ses demandes d'adoption.
+- Espace profil : informations du compte, modification des données et photo de profil, suivi des demandes d'adoption.
 - Gestion des animaux (ajout, modification, statut) par les membres autorisés.
 - Suivi et traitement des demandes d'adoption par les membres.
 - Niveaux d'accès : visiteur, bénévole, administrateur.
@@ -176,6 +176,19 @@ Le changement de statut d'une demande depuis le back-office réutilise la logiqu
 service `App\Service\AdoptionRequestProcessor` (statut de l'animal, refus des demandes
 concurrentes), et le slug d'un animal est (re)généré automatiquement à l'enregistrement.
 
+## Profil utilisateur
+
+Espace personnel des utilisateurs connectés (`ROLE_USER`), protégé par `access_control` et
+l'attribut `#[IsGranted]`.
+
+- `/profil` (route `app_profile`) — affiche toutes les informations du compte (nom, email, rôles,
+  date d'inscription, dernière connexion, nombre de demandes) ainsi que le suivi de ses demandes
+  d'adoption.
+- `/profil/modifier` (route `app_profile_edit`) — permet de modifier le prénom, le nom et l'adresse
+  email, et d'ajouter ou remplacer une **photo de profil** (JPEG, PNG ou WebP, 4 Mo max). Les photos
+  sont stockées dans `public/uploads/users/` (répertoire non versionné) via le service
+  `App\Service\UserPhotoUploader`.
+
 ## Configuration
 
 Les variables d'environnement sont définies dans les fichiers `.env` :
@@ -249,7 +262,7 @@ front sont servis par **AssetMapper** (importmap natif) et le style repose sur *
 - [x] Feature 4 — Catalogue public des animaux.
 - [x] Feature 5 — Gestion des animaux (bénévoles).
 - [x] Feature 6 — Demandes d'adoption.
-- [x] Profil utilisateur.
+- [x] Profil utilisateur (consultation, modification des informations et photo de profil).
 - [x] Feature 7 — Back-office EasyAdmin.
 - [ ] Connexion Google (OAuth) — retirée de cette version, à réintroduire ultérieurement.
 - [ ] Feature 9 — Tests unitaires et fonctionnels.

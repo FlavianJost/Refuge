@@ -25,3 +25,8 @@
 /public/uploads/animals/*
 !/public/uploads/animals/.gitkeep
 ###< uploads (photos des animaux) ###
+
+###> uploads (photos de profil) ###
+/public/uploads/users/*
+!/public/uploads/users/.gitkeep
+###< uploads (photos de profil) ###
