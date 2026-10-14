@@ -28,7 +28,6 @@ administrateur).
 - [Tests](#tests)
 - [Structure du projet](#structure-du-projet)
 - [Stack technique](#stack-technique)
-- [Feuille de route](#feuille-de-route)
 
 ## Fonctionnalités
 
@@ -80,21 +79,13 @@ php bin/console doctrine:fixtures:load   # données de démonstration
 
 ## Configuration
 
-Les variables d'environnement sont réparties dans les fichiers `.env` :
-
-| Fichier | Rôle |
-| --- | --- |
-| `.env` | Valeurs par défaut communes à tous les environnements. |
-| `.env.dev` | Surcharges pour l'environnement de développement. |
-| `.env.test` | Surcharges pour l'environnement de test. |
+Les variables d'environnement sont définies dans les fichiers `.env` :
 
 | Variable | Description |
 | --- | --- |
 | `APP_ENV` | Environnement courant (`dev`, `test`, `prod`). |
 | `APP_SECRET` | Clé secrète utilisée par Symfony. |
 | `DATABASE_URL` | Connexion à la base de données (MySQL/MariaDB), avec le numéro de version du serveur. |
-| `MAILER_DSN` | Transport d'envoi des emails (`null://null` : aucun email réel n'est envoyé). |
-| `MESSENGER_TRANSPORT_DSN` | Transport du composant Messenger (non utilisé activement par l'application). |
 
 Pour vos réglages locaux, créez un fichier `.env.local` (non versionné) et **ne committez jamais**
 de secrets dans les fichiers `.env` versionnés.
@@ -102,14 +93,11 @@ de secrets dans les fichiers `.env` versionnés.
 ## Lancer l'application
 
 ```bash
-# Avec la Symfony CLI
-symfony serve
-
-# Ou avec le serveur PHP intégré
-php -S localhost:8000 -t public
+symfony server:start
 ```
 
-L'application est ensuite accessible sur `http://localhost:8000`.
+L'application est ensuite accessible sur l'adresse indiquée par la Symfony CLI (par défaut
+`https://127.0.0.1:8000`).
 
 Les assets sont servis dynamiquement en développement. Pour la production, compilez-les :
 
@@ -413,20 +401,3 @@ comme couche de contrôle et les templates Twig pour la vue. Les assets front so
 - **scheb/2fa-bundle + scheb/2fa-totp** — authentification à deux facteurs (TOTP).
 - **endroid/qr-code** — génération des QR codes d'authentification.
 - **PHPUnit** — tests unitaires et fonctionnels.
-
-## Feuille de route
-
-- [x] Feature 1 — Base du projet, layout Bootstrap 5 et page d'accueil.
-- [x] Feature 2 — Modèle de données (User, Animal, AdoptionRequest).
-- [x] Feature 3 — Authentification et gestion des rôles.
-- [x] Feature 4 — Catalogue public des animaux.
-- [x] Feature 5 — Gestion des animaux (bénévoles).
-- [x] Feature 6 — Demandes d'adoption.
-- [x] Feature 7 — Back-office d'administration (EasyAdmin).
-- [x] Feature 8 — Profil utilisateur (informations, photo de profil, mot de passe).
-- [ ] Feature 9 — Connexion Google (OAuth) — retirée de cette version, à réintroduire ultérieurement.
-- [x] Feature 10 — Tests unitaires et fonctionnels.
-- [x] Pour aller plus loin — Page de don (démonstration) et suivi des dons dans le back-office.
-- [x] Pour aller plus loin — Avis sur le refuge (page publique, dépôt par les utilisateurs, modération en back-office).
-- [x] Pour aller plus loin — Messagerie interne entre les utilisateurs et l'équipe du refuge.
-- [x] Pour aller plus loin — Authentification à deux facteurs (TOTP) activable depuis le profil.
