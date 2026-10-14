@@ -111,7 +111,11 @@ Les zones sensibles sont également protégées au niveau des contrôleurs par l
 
 - `GET /animaux` — liste des animaux avec filtres par **espèce** et **situation**
   (`app_animal_index`). Affiche par défaut les animaux disponibles.
-- `GET /animaux/{id}` — fiche détaillée d'un animal (`app_animal_show`).
+- `GET /animaux/{slug}` — fiche détaillée d'un animal (`app_animal_show`), identifiée par un slug unique.
+
+Le slug est généré à partir du nom via `Symfony\Component\String\Slugger\SluggerInterface`
+(service `App\Service\AnimalSlugger`). Plusieurs animaux peuvent porter le **même nom** : en cas
+de doublon, un suffixe numérique est ajouté pour garantir l'unicité (`rex`, `rex-2`, `rex-3`, ...).
 
 Ces pages sont accessibles aux visiteurs non authentifiés. Les photographies sont servies
 depuis `public/uploads/animals/`.
