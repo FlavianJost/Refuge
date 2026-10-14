@@ -4,18 +4,45 @@
 
 {% block body %}
     <div class="container my-5">
-        <h1 class="mb-4">Mon profil</h1>
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+            <h1 class="mb-0">Mon profil</h1>
+            <a href="{{ path('app_profile_edit') }}" class="btn btn-primary">
+                Modifier mon profil
+            </a>
+        </div>
 
         {% set role_labels = {'ROLE_ADMIN': 'Administrateur', 'ROLE_VOLUNTEER': 'Bénévole', 'ROLE_USER': 'Utilisateur'} %}
+        {% set initials = ((user.firstName|default(''))|slice(0, 1) ~ (user.lastName|default(''))|slice(0, 1))|upper %}
+        {% if initials == '' %}
+            {% set initials = user.email|slice(0, 1)|upper %}
+        {% endif %}
 
         <div class="row g-4">
             <div class="col-lg-5">
-                <div class="card shadow-sm">
-                    <div class="card-body">
-                        <h2 class="h5 card-title mb-3">{{ user.fullName }}</h2>
-                        <ul class="list-group list-group-flush">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        {% if user.photo %}
+                            <img src="/uploads/users/{{ user.photo }}" alt="{{ user.fullName }}"
+                                 class="rounded-circle object-fit-cover mb-3" width="120" height="120">
+                        {% else %}
+                            <div class="rounded-circle bg-secondary text-white d-inline-flex align-items-center justify-content-center mx-auto mb-3"
+                                 style="width: 120px; height: 120px; font-size: 2.5rem;">
+                                {{ initials }}
+                            </div>
+                        {% endif %}
+
+                        <h2 class="h4 mb-1">{{ user.fullName }}</h2>
+                        <p class="text-muted mb-3">Membre depuis le {{ user.createdAt|date('d/m/Y') }}</p>
+
+                        <ul class="list-group list-group-flush text-start">
                             <li class="list-group-item">
                                 <strong>Email :</strong> {{ user.email }}
+                            </li>
+                            <li class="list-group-item">
+                                <strong>Prénom :</strong> {{ user.firstName ?: '—' }}
+                            </li>
+                            <li class="list-group-item">
+                                <strong>Nom :</strong> {{ user.lastName ?: '—' }}
                             </li>
                             <li class="list-group-item">
                                 <strong>Rôles :</strong>
@@ -24,11 +51,11 @@
                                 {% endfor %}
                             </li>
                             <li class="list-group-item">
-                                <strong>Inscrit le :</strong> {{ user.createdAt|date('d/m/Y') }}
-                            </li>
-                            <li class="list-group-item">
                                 <strong>Dernière connexion :</strong>
                                 {{ user.lastLoginAt ? user.lastLoginAt|date('d/m/Y à H:i') : '—' }}
+                            </li>
+                            <li class="list-group-item">
+                                <strong>Demandes d'adoption :</strong> {{ user.adoptionRequests|length }}
                             </li>
                         </ul>
                     </div>
@@ -39,7 +66,10 @@
                 <h2 class="h5 mb-3">Mes demandes d'adoption</h2>
 
                 {% if user.adoptionRequests is empty %}
-                    <div class="alert alert-info mb-0">Vous n'avez encore aucune demande d'adoption.</div>
+                    <div class="alert alert-info mb-0">
+                        Vous n'avez encore aucune demande d'adoption.
+                        <a href="{{ path('app_animal_index') }}" class="alert-link">Découvrir les animaux à adopter</a>.
+                    </div>
                 {% else %}
                     <div class="table-responsive">
                         <table class="table table-striped align-middle mb-0">
