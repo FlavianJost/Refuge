@@ -2,8 +2,10 @@
 
 Application web de gestion d'un refuge animalier développée avec **Symfony 7.4** (PHP 8.2+).
 
-Elle permet de centraliser les informations sur les animaux accueillis, de gérer les
-demandes d'adoption et d'organiser les niveaux d'accès (visiteur, bénévole, administrateur).
+Elle permet de présenter publiquement les animaux à l'adoption, de recueillir les demandes
+d'adoption et les dons, de partager des avis, d'échanger par messagerie interne et de gérer le
+refuge via un back-office, avec une gestion fine des rôles (visiteur, utilisateur, bénévole,
+administrateur).
 
 ## Sommaire
 
@@ -12,6 +14,17 @@ demandes d'adoption et d'organiser les niveaux d'accès (visiteur, bénévole, a
 - [Installation](#installation)
 - [Configuration](#configuration)
 - [Lancer l'application](#lancer-lapplication)
+- [Modèle de données](#modèle-de-données)
+- [Authentification et rôles](#authentification-et-rôles)
+- [Authentification à deux facteurs (TOTP)](#authentification-à-deux-facteurs-totp)
+- [Catalogue des animaux (public)](#catalogue-des-animaux-public)
+- [Demandes d'adoption](#demandes-dadoption)
+- [Espace utilisateur](#espace-utilisateur)
+- [Messagerie](#messagerie)
+- [Avis sur le refuge](#avis-sur-le-refuge)
+- [Dons (démonstration)](#dons-démonstration)
+- [Gestion du refuge (bénévoles)](#gestion-du-refuge-bénévoles)
+- [Back-office d'administration (EasyAdmin)](#back-office-dadministration-easyadmin)
 - [Tests](#tests)
 - [Structure du projet](#structure-du-projet)
 - [Stack technique](#stack-technique)
@@ -21,23 +34,24 @@ demandes d'adoption et d'organiser les niveaux d'accès (visiteur, bénévole, a
 
 - Consultation publique des animaux accueillis et de leur fiche détaillée.
 - Dépôt d'une demande d'adoption par les utilisateurs connectés.
-- Espace profil : informations du compte, modification des données et photo de profil, suivi des demandes d'adoption.
-- Gestion des animaux (ajout, modification, statut) par les membres autorisés.
-- Suivi et traitement des demandes d'adoption par les membres.
-- Niveaux d'accès : visiteur, bénévole, administrateur.
+- Espace profil : informations du compte, modification des données et photo de profil,
+  changement de mot de passe et suivi de ses demandes.
+- Messagerie interne : fil de discussion entre chaque utilisateur et l'équipe du refuge,
+  avec rafraîchissement automatique des nouveaux messages.
+- Authentification à deux facteurs (TOTP) activable depuis le profil.
+- Avis sur le refuge : consultation publique et dépôt par les utilisateurs connectés.
 - Page de don (démonstration) avec enregistrement des dons en base.
-- Avis sur le refuge : consultation publique et dépôt d'avis par les utilisateurs connectés.
-- Messagerie interne dans l'espace client, avec fil de discussion et réponses de l'équipe du refuge.
-- Changement de mot de passe et authentification à deux facteurs (TOTP) depuis le profil.
-- Back-office d'administration (gestion des utilisateurs, supervision).
+- Gestion des animaux et traitement des demandes d'adoption par les bénévoles.
+- Back-office d'administration (animaux, demandes, dons, avis, utilisateurs, supervision).
+- Niveaux d'accès hiérarchisés : visiteur, utilisateur, bénévole, administrateur.
 
 ## Prérequis
 
-- PHP >= 8.2 avec les extensions `ctype`, `iconv` (fournies avec Symfony Flex) et `gd`
-  (requise pour la génération du QR code de l'authentification à deux facteurs).
-- Composer 2.
-- Un serveur de base de données MySQL/MariaDB (ou SQLite pour un démarrage rapide).
-- Symfony CLI (optionnel, mais recommandé).
+- **PHP >= 8.2** avec les extensions `ctype` et `iconv` (requises par Symfony Flex) et `gd`
+  (nécessaire au rendu du QR code de l'authentification à deux facteurs).
+- **Composer 2**.
+- Un serveur **MySQL/MariaDB** (la configuration d'exemple utilise `127.0.0.1:3307`).
+- **Symfony CLI** (optionnel, mais recommandé pour lancer le serveur local).
 
 Aucune étape de build front n'est nécessaire : les assets sont gérés par **AssetMapper**
 (importmap natif, sans Node.js).
@@ -52,7 +66,7 @@ cd Refuge
 # 2. Installer les dépendances PHP
 composer install
 
-# 3. Télécharger les assets front (Bootstrap 5, Stimulus, Turbo)
+# 3. Récupérer les assets front (Bootstrap 5, Stimulus, Turbo)
 php bin/console importmap:install
 
 # 4. Préparer la base de données
@@ -61,239 +75,29 @@ php bin/console doctrine:migrations:migrate
 php bin/console doctrine:fixtures:load   # données de démonstration
 ```
 
-> Si aucune migration n'existe encore, générez-la à partir des entités :
-> `php bin/console make:migration`.
-
-## Modèle de données
-
-L'application s'appuie sur trois entités Doctrine :
-
-| Entité | Description | Champs principaux |
-| --- | --- | --- |
-| `User` | Utilisateur de l'application (visiteur, bénévole, administrateur). | email, rôles, mot de passe, prénom, nom, dernière connexion, secret TOTP |
-| `Animal` | Animal accueilli au refuge. | nom, espèce, race, âge, description, statut, photo |
-| `AdoptionRequest` | Demande d'adoption déposée par un utilisateur pour un animal. | animal, utilisateur, message, statut, traitement |
-| `Donation` | Don effectué via la page de démonstration (paiement simulé). | montant (en centimes), donateur, email, message, statut, date |
-| `Review` | Avis publié par un utilisateur sur le refuge. | utilisateur, note (1 à 5), commentaire, date |
-| `Conversation` | Fil de discussion entre un utilisateur et le refuge (un fil par utilisateur). | utilisateur, compteurs de messages non lus, dates |
-| `Message` | Message publié dans une conversation, par un utilisateur ou un membre du refuge. | conversation, auteur, message, émis par l'équipe, date |
-
-Deux énumérations typent les états : `AnimalStatus` (disponible, en cours d'adoption,
-adopté) et `AdoptionRequestStatus` (nouvelle, en cours, acceptée, refusée). Les dons
-utilisent l'énumération `DonationStatus` (confirmé, en attente, échoué).
-
-### Données de démonstration
-
-Le jeu de données (`AppFixtures`) crée des comptes, plusieurs animaux et des demandes d'adoption
-de démonstration :
-
-| Email | Mot de passe | Rôle |
-| --- | --- | --- |
-| `admin@refuge.test` | `password` | Administrateur |
-| `benevole@refuge.test` | `password` | Bénévole |
-| `camille@refuge.test` | `password` | Utilisateur (candidat) |
-| `david@refuge.test` | `password` | Utilisateur (candidat) |
-
-## Authentification et rôles
-
-L'authentification repose sur le composant **Security** de Symfony (fournisseur Doctrine,
-formulaire de connexion, déconnexion).
-
-- Inscription : `GET|POST /inscription` (`app_register`).
-- Connexion : `GET|POST /login` (`app_login`).
-- Déconnexion : route générée `_logout_main` (`/deconnexion`).
-
-Les rôles sont hiérarchisés dans `security.yaml` :
-
-| Rôle | Portée |
-| --- | --- |
-| `ROLE_USER` | Visiteur authentifié. |
-| `ROLE_VOLUNTEER` | Bénévole : gestion des animaux et des demandes. |
-| `ROLE_ADMIN` | Administrateur : supervision complète (hérite de `ROLE_VOLUNTEER`). |
-
-La protection CSRF est **sans état (stateless)** pour les formulaires et l'authentification
-(configuration dans `config/packages/csrf.yaml`). La date de dernière connexion est enregistrée
-automatiquement à chaque authentification (`App\EventListener\LoginListener`).
-
-Les zones sensibles sont également protégées au niveau des contrôleurs par l'attribut
-`#[IsGranted]` (défense en profondeur en plus des `access_control`).
-
-## Authentification à deux facteurs (TOTP)
-
-En complément du mot de passe, chaque utilisateur peut activer une **authentification à deux
-facteurs** basée sur le temps (TOTP), compatible avec les applications d'authentification
-(Google Authenticator, Authy, FreeOTP...). Elle s'appuie sur le bundle **`scheb/2fa-bundle`**
-et le générateur de QR codes **`endroid/qr-code`**.
-
-- `GET|POST /profil/2fa/activer` (route `app_profile_2fa_enable`) — affiche un **QR code** (et la
-  clé manuelle) à scanner, puis vérifie le premier code avant d'activer la 2FA. Le secret n'est
-  enregistré qu'après validation du code.
-- `POST /profil/2fa/desactiver` (route `app_profile_2fa_disable`) — désactive la 2FA et supprime
-  le secret enregistré (protégé par un jeton CSRF).
-
-Une fois la 2FA activée, la connexion (`/login`) demande, dans un second écran
-(`GET /2fa`, route `2fa_login`), le code à 6 chiffres généré par l'application
-(`POST /2fa_check`, route `2fa_login_check`). En cas d'échec, l'utilisateur peut annuler et se
-déconnecter.
-
-Le secret est stocké sur l'utilisateur (`totp_secret`, `totp_enabled`), qui implémente
-`Scheb\TwoFactorBundle\Model\Totp\TwoFactorInterface`. La configuration du bundle se trouve dans
-`config/packages/scheb_2fa.yaml` et ses routes dans `config/routes/scheb_2fa.yaml`.
-
-## Catalogue des animaux (public)
-
-- `GET /animaux` — liste des animaux avec filtres par **espèce** et **situation**
-  (`app_animal_index`). Affiche par défaut les animaux disponibles.
-- `GET /animaux/{slug}` — fiche détaillée d'un animal (`app_animal_show`), identifiée par un slug unique.
-
-Le slug est généré à partir du nom via `Symfony\Component\String\Slugger\SluggerInterface`
-(service `App\Service\AnimalSlugger`). Plusieurs animaux peuvent porter le **même nom** : en cas
-de doublon, un suffixe numérique est ajouté pour garantir l'unicité (`rex`, `rex-2`, `rex-3`, ...).
-
-Ces pages sont accessibles aux visiteurs non authentifiés. Les photographies sont servies
-depuis `public/uploads/animals/`.
-
-## Gestion des animaux (bénévoles)
-
-Espace réservé aux utilisateurs disposant du rôle `ROLE_VOLUNTEER` (et `ROLE_ADMIN`).
-
-- `GET /gestion/animaux` — tableau de bord des animaux (`app_animal_manage_index`).
-- `GET|POST /gestion/animaux/nouveau` — ajout d'un animal (`app_animal_manage_new`).
-- `GET|POST /gestion/animaux/{id}/modifier` — édition (`app_animal_manage_edit`).
-- `POST /gestion/animaux/{id}/supprimer` — suppression avec jeton CSRF (`app_animal_manage_delete`).
-
-L'upload de photo est pris en charge par le service `App\Service\AnimalPhotoUploader` : les
-fichiers (JPEG, PNG ou WebP, 4 Mo max) sont enregistrés dans `public/uploads/animals/`. La
-photo précédente est supprimée lors d'un remplacement ou de la suppression de l'animal.
-
-## Demandes d'adoption
-
-### Côté utilisateur connecté (`ROLE_USER`)
-
-- `GET|POST /animaux/{id}/adopter` — formulaire de demande d'adoption (`app_adoption_request_new`),
-  accessible depuis la fiche de l'animal. La demande est **réservée aux utilisateurs connectés** :
-  un visiteur est redirigé vers la page de connexion. La demande est rattachée au compte de
-  l'utilisateur (pas de saisie de coordonnées) et une demande en doublon pour le même animal est
-  refusée.
-
-### Côté bénévole (`ROLE_VOLUNTEER`)
-
-- `GET /gestion/demandes` — liste des demandes avec filtre par statut (`app_adoption_manage_index`).
-- `GET /gestion/demandes/{id}` — détail d'une demande (`app_adoption_manage_show`).
-- `POST /gestion/demandes/{id}/statut` — changement de statut (`app_adoption_manage_status`).
-
-Les transitions sont gérées par le service `App\Service\AdoptionRequestProcessor` :
-
-- **Acceptée** : l'animal passe au statut *Adopté* et les autres demandes en cours pour cet animal
-  sont automatiquement refusées.
-- **Refusée** : la demande est clôturée, horodatée et associée au bénévole.
-- **Nouvelle / En cours** : la demande est réouverte ; si l'animal n'a plus de demande acceptée,
-  il redevient *Disponible*.
-
-## Back-office d'administration (EasyAdmin)
-
-Espace réservé aux utilisateurs disposant du rôle `ROLE_ADMIN`, généré avec **EasyAdmin 5**
-sous le chemin `/admin` (route `admin`, protégée par `access_control` et l'attribut `#[IsGranted]`).
-
-- `/admin` — tableau de bord (nombre d'animaux, de demandes d'adoption et d'utilisateurs, nombre et
-  total des dons, nombre d'avis, nombre de conversations et de messages non lus).
-- Gestion **des animaux**, **des demandes d'adoption**, **des dons**, **des avis** et
-  **des utilisateurs** via les contrôleurs CRUD d'EasyAdmin. La **messagerie** est gérée depuis une
-  page dédiée (voir la section « Messagerie »).
-
-Le tableau de bord et les contrôleurs CRUD se trouvent dans `src/Controller/Admin/` et
-configurent l'affichage en français (libellés, badges de statut, filtres). Les énumérations
-(`Species`, `AnimalStatus`, `AdoptionRequestStatus`, `DonationStatus`) implémentent
-`Symfony\Contracts\Translation\TranslatableInterface` afin qu'EasyAdmin affiche leurs libellés
-français dans les formulaires, les listes et les filtres.
-
-Le changement de statut d'une demande depuis le back-office réutilise la logique métier du
-service `App\Service\AdoptionRequestProcessor` (statut de l'animal, refus des demandes
-concurrentes), et le slug d'un animal est (re)généré automatiquement à l'enregistrement.
-
-## Profil utilisateur
-
-Espace personnel des utilisateurs connectés (`ROLE_USER`), protégé par `access_control` et
-l'attribut `#[IsGranted]`.
-
-- `/profil` (route `app_profile`) — affiche toutes les informations du compte (nom, email, rôles,
-  date d'inscription, dernière connexion, nombre de demandes), le suivi de ses demandes
-  d'adoption ainsi que ses avis. Un lien permet d'accéder à sa **messagerie** et une section
-  « Sécurité » permet de gérer l'**authentification à deux facteurs**.
-- `/profil/modifier` (route `app_profile_edit`) — permet de modifier le prénom, le nom et l'adresse
-  email, d'ajouter ou remplacer une **photo de profil** (JPEG, PNG ou WebP, 4 Mo max) et de
-  **changer le mot de passe** (le mot de passe actuel est exigé ; laissez les champs vides pour le
-  conserver). Les photos sont stockées dans `public/uploads/users/` (répertoire non versionné) via
-  le service `App\Service\UserPhotoUploader`.
-
-## Dons (démonstration)
-
-Page publique de soutien au refuge :
-
-- `GET|POST /faire-un-don` (route `app_donation_new`) — formulaire de don avec **montant libre**,
-  coordonnées facultatives du donateur (nom, email, message) et un **faux formulaire bancaire**
-  (numéro de carte, expiration, CVC). Le paiement est **simulé** : aucune donnée bancaire n'est
-  transmise ni enregistrée, et l'utilisateur n'a pas besoin d'être connecté.
-- `GET /faire-un-don/merci` (route `app_donation_thanks`) — page de confirmation après un don.
-
-Chaque don valide est enregistré dans la table `donation` (entité `Donation`) avec son montant
-stocké en **centimes** et le statut `DonationStatus::PAID`. Les dons sont consultables et leur
-total est affiché dans le back-office (voir la section suivante).
-
-## Avis sur le refuge
-
-Avis généraux portant sur le refuge (et non sur un animal en particulier).
-
-- `GET /avis` (route `app_review_index`) — page **publique** listant les avis, avec la note moyenne
-  et le nombre d'avis. Un aperçu des derniers avis est également affiché sur la page d'accueil.
-- `GET|POST /avis/nouveau` (route `app_review_new`) — dépôt d'un avis (note de 1 à 5 et
-  commentaire), réservé aux utilisateurs connectés (`ROLE_USER`). Les avis sont **publiés
-  immédiatement** : il n'y a pas de modération préalable.
-- `POST /avis/{id}/supprimer` (route `app_review_delete`) — suppression d'un avis par son auteur
-  (ou par un administrateur), protégée par un jeton CSRF.
-
-Les avis d'un utilisateur sont également visibles dans la section « Mes avis » de son profil.
-
-## Messagerie
-
-Fil de discussion entre chaque utilisateur connecté (`ROLE_USER`) et l'équipe du refuge (bénévoles
-`ROLE_VOLUNTEER` et administrateurs). Les échanges se font directement dans l'application (sans email).
-
-### Côté utilisateur
-
-- `GET|POST /profil/messages` (route `app_message_index`) — affiche le fil de discussion et permet
-  d'envoyer un message au refuge.
-- `GET /profil/messages/nouveaux` (route `app_message_latest`) — endpoint JSON utilisé pour le
-  rafraîchissement automatique.
-
-### Côté équipe du refuge (`ROLE_VOLUNTEER`)
-
-- `GET /gestion/messages` (route `app_message_manage_index`) — liste des conversations triées par
-  activité, avec le nombre de messages non lus.
-- `GET|POST /gestion/messages/{id}` (route `app_message_manage_show`) — consultation d'une
-  conversation et réponse de l'équipe.
-- `GET /gestion/messages/{id}/nouveaux` (route `app_message_manage_latest`) — endpoint JSON de
-  rafraîchissement.
-
-Les échanges sont enregistrés dans les tables `conversation` et `message` (entités `Conversation` et
-`Message`). Chaque utilisateur dispose d'une seule conversation ; les compteurs `unread_for_user` et
-`unread_for_staff` alimentent les badges de messages non lus. Les nouveaux messages sont chargés
-automatiquement toutes les quelques secondes par un contrôleur Stimulus
-(`assets/controllers/message_poll_controller.js`), ce qui donne une impression de discussion en
-direct sans WebSocket.
+> Si `assets/vendor/` est déjà présent dans le dépôt, l'étape `importmap:install` n'est pas
+> indispensable.
 
 ## Configuration
 
-Les variables d'environnement sont définies dans les fichiers `.env` :
+Les variables d'environnement sont réparties dans les fichiers `.env` :
+
+| Fichier | Rôle |
+| --- | --- |
+| `.env` | Valeurs par défaut communes à tous les environnements. |
+| `.env.dev` | Surcharges pour l'environnement de développement. |
+| `.env.test` | Surcharges pour l'environnement de test. |
 
 | Variable | Description |
 | --- | --- |
 | `APP_ENV` | Environnement courant (`dev`, `test`, `prod`). |
 | `APP_SECRET` | Clé secrète utilisée par Symfony. |
-| `DATABASE_URL` | Connexion à la base de données (MySQL/MariaDB). |
+| `DATABASE_URL` | Connexion à la base de données (MySQL/MariaDB), avec le numéro de version du serveur. |
+| `MAILER_DSN` | Transport d'envoi des emails (`null://null` : aucun email réel n'est envoyé). |
+| `MESSENGER_TRANSPORT_DSN` | Transport du composant Messenger (non utilisé activement par l'application). |
 
-Pour vos réglages locaux, créez un fichier `.env.local` (non versionné) et **ne committez
-jamais** de secrets dans les fichiers `.env` versionnés.
+Pour vos réglages locaux, créez un fichier `.env.local` (non versionné) et **ne committez jamais**
+de secrets dans les fichiers `.env` versionnés.
 
 ## Lancer l'application
 
@@ -312,6 +116,237 @@ Les assets sont servis dynamiquement en développement. Pour la production, comp
 ```bash
 php bin/console asset-map:compile
 ```
+
+## Modèle de données
+
+L'application s'appuie sur **sept entités Doctrine** :
+
+| Entité | Description | Champs principaux |
+| --- | --- | --- |
+| `User` | Utilisateur de l'application (visiteur, bénévole, administrateur). | email, rôles, mot de passe, prénom, nom, photo, dernière connexion, secret TOTP |
+| `Animal` | Animal accueilli au refuge. | nom, slug, espèce, race, âge, description, statut, photo |
+| `AdoptionRequest` | Demande d'adoption déposée par un utilisateur pour un animal. | animal, utilisateur, message, statut, traitement |
+| `Donation` | Don effectué via la page de démonstration (paiement simulé). | montant (en centimes), donateur, email, message, statut, date |
+| `Review` | Avis publié par un utilisateur sur le refuge. | utilisateur, note (1 à 5), commentaire, date |
+| `Conversation` | Fil de discussion entre un utilisateur et le refuge (un fil par utilisateur). | utilisateur, compteurs de messages non lus, dates |
+| `Message` | Message publié dans une conversation, par un utilisateur ou un membre du refuge. | conversation, auteur, texte, émis par l'équipe, date |
+
+Quatre énumérations typent les valeurs métier, avec des libellés français :
+
+- `Species` : chien, chat, lapin, oiseau, rongeur, autre.
+- `AnimalStatus` : disponible, en cours d'adoption, adopté.
+- `AdoptionRequestStatus` : nouvelle, en cours de traitement, acceptée, refusée.
+- `DonationStatus` : confirmé, en attente, échoué.
+
+Elles implémentent `TranslatableInterface`, ce qui permet à EasyAdmin d'afficher directement leurs
+libellés français dans les formulaires, les listes et les filtres.
+
+### Données de démonstration
+
+Le jeu de données (`AppFixtures`) crée des comptes, des animaux (dont deux homonymes pour illustrer
+l'unicité des slugs) et des demandes d'adoption :
+
+| Email | Mot de passe | Rôle |
+| --- | --- | --- |
+| `admin@refuge.test` | `password` | Administrateur |
+| `benevole@refuge.test` | `password` | Bénévole |
+| `camille@refuge.test` | `password` | Utilisateur |
+| `david@refuge.test` | `password` | Utilisateur |
+
+## Authentification et rôles
+
+L'authentification repose sur le composant **Security** de Symfony (fournisseur Doctrine, formulaire
+de connexion, déconnexion).
+
+- Inscription : `GET|POST /inscription` (`app_register`).
+- Connexion : `GET|POST /login` (`app_login`).
+- Déconnexion : `POST /deconnexion` (`_logout_main`).
+
+Les rôles sont hiérarchisés dans `config/packages/security.yaml` :
+
+| Rôle | Portée |
+| --- | --- |
+| `ROLE_USER` | Visiteur authentifié (profil, demandes, messagerie, avis). |
+| `ROLE_VOLUNTEER` | Bénévole : gestion des animaux, des demandes et de la messagerie. |
+| `ROLE_ADMIN` | Administrateur : supervision complète (hérite de `ROLE_VOLUNTEER`). |
+
+La protection CSRF est **sans état (stateless)** pour les formulaires et l'authentification
+(`config/packages/csrf.yaml`). La date de dernière connexion est enregistrée automatiquement à
+chaque authentification (`App\EventListener\LoginListener`). En complément des `access_control`, les
+zones sensibles sont protégées dans les contrôleurs par l'attribut `#[IsGranted]` (défense en
+profondeur).
+
+## Authentification à deux facteurs (TOTP)
+
+En complément du mot de passe, chaque utilisateur peut activer une **authentification à deux
+facteurs** basée sur le temps (TOTP), compatible avec les applications d'authentification
+(Google Authenticator, Authy, FreeOTP...). Elle s'appuie sur le bundle **`scheb/2fa-bundle`** et le
+générateur de QR codes **`endroid/qr-code`**.
+
+- `GET|POST /profil/2fa/activer` (`app_profile_2fa_enable`) — affiche un **QR code** (et la clé
+  manuelle) à scanner, puis vérifie le premier code avant d'activer la 2FA. Le secret n'est
+  enregistré qu'après validation du code.
+- `POST /profil/2fa/desactiver` (`app_profile_2fa_disable`) — désactive la 2FA et supprime le secret
+  enregistré (protégé par un jeton CSRF).
+
+Une fois la 2FA activée, la connexion (`/login`) demande, dans un second écran (`GET /2fa`, route
+`2fa_login`), le code à 6 chiffres généré par l'application (`POST /2fa_check`, route
+`2fa_login_check`). En cas d'échec, l'utilisateur peut annuler et se déconnecter.
+
+Le secret est stocké sur l'utilisateur (`totp_secret`, `totp_enabled`), qui implémente
+`Scheb\TwoFactorBundle\Model\Totp\TwoFactorInterface`. La configuration du bundle se trouve dans
+`config/packages/scheb_2fa.yaml` et ses routes dans `config/routes/scheb_2fa.yaml`.
+
+## Catalogue des animaux (public)
+
+- `GET /animaux` (`app_animal_index`) — liste des animaux avec filtres par **espèce** et
+  **situation**. Affiche par défaut les animaux disponibles.
+- `GET /animaux/{slug}` (`app_animal_show`) — fiche détaillée d'un animal, identifiée par un slug
+  unique.
+
+Le slug est généré à partir du nom via `Symfony\Component\String\Slugger\SluggerInterface` (service
+`App\Service\AnimalSlugger`). Plusieurs animaux peuvent porter le **même nom** : en cas de doublon,
+un suffixe numérique est ajouté pour garantir l'unicité (`rex`, `rex-2`, `rex-3`, ...).
+
+Ces pages sont accessibles aux visiteurs non authentifiés. Les photographies sont servies depuis
+`public/uploads/animals/`.
+
+## Demandes d'adoption
+
+### Côté utilisateur connecté (`ROLE_USER`)
+
+- `GET|POST /animaux/{id}/adopter` (`app_adoption_request_new`) — formulaire de demande d'adoption,
+  accessible depuis la fiche de l'animal. La demande est **réservée aux utilisateurs connectés** :
+  un visiteur est redirigé vers la page de connexion. Elle est rattachée au compte de l'utilisateur
+  (pas de saisie de coordonnées) et une demande en doublon pour le même animal est refusée.
+
+### Côté bénévole (`ROLE_VOLUNTEER`)
+
+- `GET /gestion/demandes` (`app_adoption_manage_index`) — liste des demandes avec filtre par statut.
+- `GET /gestion/demandes/{id}` (`app_adoption_manage_show`) — détail d'une demande.
+- `POST /gestion/demandes/{id}/statut` (`app_adoption_manage_status`) — changement de statut.
+
+Les transitions sont gérées par le service `App\Service\AdoptionRequestProcessor` :
+
+- **Acceptée** : l'animal passe au statut *Adopté* et les autres demandes en cours pour cet animal
+  sont automatiquement refusées.
+- **Refusée** : la demande est clôturée, horodatée et associée au bénévole.
+- **Nouvelle / En cours** : la demande est réouverte ; si l'animal n'a plus de demande acceptée, il
+  redevient *Disponible*.
+
+## Espace utilisateur
+
+Espace personnel des utilisateurs connectés (`ROLE_USER`), protégé par `access_control` et
+l'attribut `#[IsGranted]`.
+
+- `GET /profil` (`app_profile`) — affiche les informations du compte (nom, email, rôle, date
+  d'inscription, dernière connexion, nombre de demandes), le suivi de ses demandes d'adoption ainsi
+  que ses avis. Un lien mène à sa **messagerie** et une section « Sécurité » permet de gérer
+  l'**authentification à deux facteurs**.
+- `GET|POST /profil/modifier` (`app_profile_edit`) — permet de modifier le prénom, le nom et
+  l'adresse email, d'ajouter ou remplacer une **photo de profil** (JPEG, PNG ou WebP, 4 Mo max) et de
+  **changer le mot de passe** (le mot de passe actuel est exigé ; laissez les champs vides pour le
+  conserver). Les photos sont stockées dans `public/uploads/users/` via le service
+  `App\Service\UserPhotoUploader`.
+- `GET|POST /animaux/{id}/adopter` (`app_adoption_request_new`) — dépôt d'une demande d'adoption.
+- `GET|POST /profil/messages` (`app_message_index`) — messagerie avec l'équipe du refuge.
+- `GET|POST /avis/nouveau` (`app_review_new`) et `POST /avis/{id}/supprimer` (`app_review_delete`) —
+  dépôt et suppression d'un avis.
+
+## Messagerie
+
+Fil de discussion entre chaque utilisateur connecté (`ROLE_USER`) et l'équipe du refuge (bénévoles
+`ROLE_VOLUNTEER` et administrateurs). Les échanges se font directement dans l'application, sans email.
+
+### Côté utilisateur
+
+- `GET|POST /profil/messages` (`app_message_index`) — affiche le fil de discussion et permet
+  d'envoyer un message au refuge.
+- `GET /profil/messages/nouveaux` (`app_message_latest`) — endpoint JSON utilisé pour le
+  rafraîchissement automatique.
+
+### Côté équipe du refuge (`ROLE_VOLUNTEER`)
+
+- `GET /gestion/messages` (`app_message_manage_index`) — liste des conversations triées par activité,
+  avec le nombre de messages non lus.
+- `GET|POST /gestion/messages/{id}` (`app_message_manage_show`) — consultation d'une conversation et
+  réponse de l'équipe.
+- `GET /gestion/messages/{id}/nouveaux` (`app_message_manage_latest`) — endpoint JSON de
+  rafraîchissement.
+
+Les échanges sont enregistrés dans les tables `conversation` et `message` (entités `Conversation` et
+`Message`). Chaque utilisateur dispose d'une seule conversation ; les compteurs `unread_for_user` et
+`unread_for_staff` alimentent les badges de messages non lus. Les nouveaux messages sont chargés
+automatiquement toutes les quelques secondes par un contrôleur Stimulus
+(`assets/controllers/message_poll_controller.js`), ce qui donne une impression de discussion en
+direct, sans WebSocket.
+
+## Avis sur le refuge
+
+Avis généraux portant sur le refuge (et non sur un animal en particulier).
+
+- `GET /avis` (`app_review_index`) — page **publique** listant les avis, avec la note moyenne et le
+  nombre d'avis. Un aperçu des derniers avis est également affiché sur la page d'accueil.
+- `GET|POST /avis/nouveau` (`app_review_new`) — dépôt d'un avis (note de 1 à 5 et commentaire),
+  réservé aux utilisateurs connectés (`ROLE_USER`). Les avis sont **publiés immédiatement** : il n'y
+  a pas de modération préalable.
+- `POST /avis/{id}/supprimer` (`app_review_delete`) — suppression d'un avis par son auteur (ou par un
+  administrateur), protégée par un jeton CSRF.
+
+Les avis d'un utilisateur sont également visibles dans la section « Mes avis » de son profil.
+
+## Dons (démonstration)
+
+Page publique de soutien au refuge :
+
+- `GET|POST /faire-un-don` (`app_donation_new`) — formulaire de don avec **montant libre**,
+  coordonnées facultatives du donateur (nom, email, message) et un **faux formulaire bancaire**
+  (numéro de carte, expiration, CVC). Le paiement est **simulé** : aucune donnée bancaire n'est
+  transmise ni enregistrée, et l'utilisateur n'a pas besoin d'être connecté.
+- `GET /faire-un-don/merci` (`app_donation_thanks`) — page de confirmation après un don.
+
+Chaque don valide est enregistré dans la table `donation` (entité `Donation`) avec son montant stocké
+en **centimes** et le statut `DonationStatus::PAID` (libellé « Confirmé »). Les dons sont consultables
+et leur total est affiché dans le back-office.
+
+## Gestion du refuge (bénévoles)
+
+Espace réservé aux utilisateurs disposant du rôle `ROLE_VOLUNTEER` (et `ROLE_ADMIN`).
+
+### Animaux
+
+- `GET /gestion/animaux` (`app_animal_manage_index`) — tableau de bord des animaux.
+- `GET|POST /gestion/animaux/nouveau` (`app_animal_manage_new`) — ajout d'un animal.
+- `GET|POST /gestion/animaux/{id}/modifier` (`app_animal_manage_edit`) — édition.
+- `POST /gestion/animaux/{id}/supprimer` (`app_animal_manage_delete`) — suppression avec jeton CSRF.
+
+L'upload de photo est pris en charge par le service `App\Service\AnimalPhotoUploader` : les fichiers
+(JPEG, PNG ou WebP, 4 Mo max) sont enregistrés dans `public/uploads/animals/`. La photo précédente
+est supprimée lors d'un remplacement ou de la suppression de l'animal.
+
+### Demandes d'adoption et messagerie
+
+- `GET /gestion/demandes` et `GET|POST /gestion/demandes/{id}` — suivi des demandes (voir la section
+  [Demandes d'adoption](#demandes-dadoption)).
+- `GET /gestion/messages` et `GET|POST /gestion/messages/{id}` — réponses aux utilisateurs (voir la
+  section [Messagerie](#messagerie)).
+
+## Back-office d'administration (EasyAdmin)
+
+Espace réservé aux utilisateurs disposant du rôle `ROLE_ADMIN`, généré avec **EasyAdmin 5** sous le
+chemin `/admin` (route `admin`, protégée par `access_control` et l'attribut `#[IsGranted]`).
+
+- `/admin` — tableau de bord (nombre d'animaux, de demandes d'adoption et d'utilisateurs, nombre et
+  total des dons, nombre d'avis, nombre de conversations et de messages non lus).
+- Gestion **des animaux**, **des demandes d'adoption**, **des dons**, **des avis** et **des
+  utilisateurs** via les contrôleurs CRUD d'EasyAdmin. La **messagerie** est gérée depuis une page
+  dédiée (voir la section [Messagerie](#messagerie)).
+
+Le tableau de bord et les contrôleurs CRUD se trouvent dans `src/Controller/Admin/` et configurent
+l'affichage en français (libellés, badges de statut, filtres). Le changement de statut d'une demande
+depuis le back-office réutilise la logique métier du service `App\Service\AdoptionRequestProcessor`
+(statut de l'animal, refus des demandes concurrentes), et le slug d'un animal est (re)généré
+automatiquement à l'enregistrement.
 
 ## Tests
 
@@ -335,47 +370,49 @@ php bin/phpunit tests/Functional/ProfileTest.php
   `AdoptionRequestStatus`), les entités (`User`, `Animal`, `AdoptionRequest`) et les services
   (`AnimalSlugger`, `AnimalPhotoUploader`, `UserPhotoUploader`, `AdoptionRequestProcessor`).
 - Les tests **fonctionnels** s'appuient sur le `KernelBrowser` de Symfony et vérifient la page
-  d'accueil, le contrôle d'accès, l'authentification, l'inscription, le catalogue des animaux et
-  le profil utilisateur. Chaque test s'exécute dans une transaction annulée à la fin
+  d'accueil, le contrôle d'accès, l'authentification, l'inscription, le catalogue des animaux et le
+  profil utilisateur. Chaque test s'exécute dans une transaction annulée à la fin
   (`DatabaseWebTestCase`) : la base de données n'est pas modifiée.
-- En environnement de test, les uploads sont redirigés vers le cache
-  (`config/services_test.yaml`) afin de ne pas polluer `public/uploads/`.
+- En environnement de test, les uploads sont redirigés vers le cache (`config/services_test.yaml`)
+  afin de ne pas polluer `public/uploads/`.
 
 ## Structure du projet
 
 ```
-assets/            # Sources JS/CSS (Bootstrap 5, styles du thème) servies par AssetMapper
+assets/            # Sources JS/CSS (Bootstrap 5, contrôleurs Stimulus, styles du thème)
+assets/controllers # Contrôleurs Stimulus (ex. rafraîchissement de la messagerie)
 importmap.php      # Déclaration des paquets front (bootstrap, stimulus, turbo...)
 config/            # Configuration Symfony (packages, routes, services)
 migrations/        # Migrations Doctrine
-public/            # Point d'entrée (index.php) et assets compilés (assets/)
+public/            # Point d'entrée (index.php), assets compilés et uploads
 src/
-  Controller/      # Contrôleurs (organisés par domaine)
+  Controller/      # Contrôleurs (organisés par domaine : Animals, Adoptions, Message...)
   Entity/          # Entités Doctrine
   Enum/            # Énumérations métier
   Form/            # Formulaires Symfony (organisés par domaine)
   Repository/      # Repositories Doctrine
-  Service/         # Services applicatifs (upload, etc.)
+  Service/         # Services applicatifs (upload, slug, traitement des demandes)
   EventListener/   # Écouteurs d'événements (connexion)
   DataFixtures/    # Jeu de données de démonstration
 templates/         # Templates Twig (layout de base + dossiers par domaine)
 tests/             # Tests unitaires et fonctionnels
 ```
 
-Le projet adopte le pattern **MVC**, avec les entités Doctrine comme modèle, les
-contrôleurs Symfony comme couche de contrôle et les templates Twig pour la vue. Les assets
-front sont servis par **AssetMapper** (importmap natif) et le style repose sur **Bootstrap 5**.
+Le projet adopte le pattern **MVC**, avec les entités Doctrine comme modèle, les contrôleurs Symfony
+comme couche de contrôle et les templates Twig pour la vue. Les assets front sont servis par
+**AssetMapper** (importmap natif) et le style repose sur **Bootstrap 5**.
 
 ## Stack technique
 
 - **Symfony 7.4** — framework principal.
-- **Doctrine ORM** — persistance et migrations.
+- **Doctrine ORM + Migrations** — persistance et migrations.
 - **Twig** — moteur de templates.
-- **AssetMapper + Bootstrap 5** — gestion des assets et interface responsive.
+- **AssetMapper + Stimulus + Turbo + Bootstrap 5** — assets front, interactivité et interface
+  responsive.
 - **EasyAdmin 5** — back-office d'administration.
 - **scheb/2fa-bundle + scheb/2fa-totp** — authentification à deux facteurs (TOTP).
 - **endroid/qr-code** — génération des QR codes d'authentification.
-- **PHPUnit** — tests.
+- **PHPUnit** — tests unitaires et fonctionnels.
 
 ## Feuille de route
 
@@ -385,11 +422,11 @@ front sont servis par **AssetMapper** (importmap natif) et le style repose sur *
 - [x] Feature 4 — Catalogue public des animaux.
 - [x] Feature 5 — Gestion des animaux (bénévoles).
 - [x] Feature 6 — Demandes d'adoption.
-- [x] Profil utilisateur (consultation, modification des informations et photo de profil).
-- [x] Feature 7 — Back-office EasyAdmin.
-- [ ] Connexion Google (OAuth) — retirée de cette version, à réintroduire ultérieurement.
-- [x] Feature 9 — Tests unitaires et fonctionnels.
-- [x] Page de don (démonstration) et suivi des dons dans le back-office.
-- [x] Avis généraux sur le refuge (page publique, dépôt par les utilisateurs, modération en back-office).
-- [x] Messagerie interne entre les utilisateurs et l'équipe du refuge (fil de discussion et réponses).
-- [x] Changement de mot de passe et authentification à deux facteurs (TOTP) depuis le profil.
+- [x] Feature 7 — Back-office d'administration (EasyAdmin).
+- [x] Feature 8 — Profil utilisateur (informations, photo de profil, mot de passe).
+- [ ] Feature 9 — Connexion Google (OAuth) — retirée de cette version, à réintroduire ultérieurement.
+- [x] Feature 10 — Tests unitaires et fonctionnels.
+- [x] Pour aller plus loin — Page de don (démonstration) et suivi des dons dans le back-office.
+- [x] Pour aller plus loin — Avis sur le refuge (page publique, dépôt par les utilisateurs, modération en back-office).
+- [x] Pour aller plus loin — Messagerie interne entre les utilisateurs et l'équipe du refuge.
+- [x] Pour aller plus loin — Authentification à deux facteurs (TOTP) activable depuis le profil.
