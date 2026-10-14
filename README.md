@@ -12,6 +12,7 @@ demandes d'adoption et d'organiser les niveaux d'accès (visiteur, bénévole, a
 - [Installation](#installation)
 - [Configuration](#configuration)
 - [Lancer l'application](#lancer-lapplication)
+- [Tests](#tests)
 - [Structure du projet](#structure-du-projet)
 - [Stack technique](#stack-technique)
 - [Feuille de route](#feuille-de-route)
@@ -220,6 +221,34 @@ Les assets sont servis dynamiquement en développement. Pour la production, comp
 php bin/console asset-map:compile
 ```
 
+## Tests
+
+Le projet est couvert par des **tests unitaires** (`tests/Unit/`) et des **tests fonctionnels**
+(`tests/Functional/`), exécutés avec **PHPUnit**.
+
+```bash
+# 1. Créer et migrer la base de données de test
+php bin/console doctrine:database:create --env=test --if-not-exists
+php bin/console doctrine:migrations:migrate --env=test --no-interaction
+
+# 2. Lancer toute la suite
+php bin/phpunit
+
+# Cibler un dossier ou un fichier
+php bin/phpunit tests/Unit
+php bin/phpunit tests/Functional/ProfileTest.php
+```
+
+- Les tests **unitaires** couvrent les énumérations (`Species`, `AnimalStatus`,
+  `AdoptionRequestStatus`), les entités (`User`, `Animal`, `AdoptionRequest`) et les services
+  (`AnimalSlugger`, `AnimalPhotoUploader`, `UserPhotoUploader`, `AdoptionRequestProcessor`).
+- Les tests **fonctionnels** s'appuient sur le `KernelBrowser` de Symfony et vérifient la page
+  d'accueil, le contrôle d'accès, l'authentification, l'inscription, le catalogue des animaux et
+  le profil utilisateur. Chaque test s'exécute dans une transaction annulée à la fin
+  (`DatabaseWebTestCase`) : la base de données n'est pas modifiée.
+- En environnement de test, les uploads sont redirigés vers le cache
+  (`config/services_test.yaml`) afin de ne pas polluer `public/uploads/`.
+
 ## Structure du projet
 
 ```
@@ -265,4 +294,4 @@ front sont servis par **AssetMapper** (importmap natif) et le style repose sur *
 - [x] Profil utilisateur (consultation, modification des informations et photo de profil).
 - [x] Feature 7 — Back-office EasyAdmin.
 - [ ] Connexion Google (OAuth) — retirée de cette version, à réintroduire ultérieurement.
-- [ ] Feature 9 — Tests unitaires et fonctionnels.
+- [x] Feature 9 — Tests unitaires et fonctionnels.
