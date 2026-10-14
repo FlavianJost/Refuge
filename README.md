@@ -27,6 +27,7 @@ demandes d'adoption et d'organiser les niveaux d'accès (visiteur, bénévole, a
 - Niveaux d'accès : visiteur, bénévole, administrateur.
 - Page de don (démonstration) avec enregistrement des dons en base.
 - Avis sur le refuge : consultation publique et dépôt d'avis par les utilisateurs connectés.
+- Formulaire de contact dans l'espace client, avec suivi des messages dans le back-office.
 - Back-office d'administration (gestion des utilisateurs, supervision).
 
 ## Prérequis
@@ -72,6 +73,7 @@ L'application s'appuie sur trois entités Doctrine :
 | `AdoptionRequest` | Demande d'adoption déposée par un utilisateur pour un animal. | animal, utilisateur, message, statut, traitement |
 | `Donation` | Don effectué via la page de démonstration (paiement simulé). | montant (en centimes), donateur, email, message, statut, date |
 | `Review` | Avis publié par un utilisateur sur le refuge. | utilisateur, note (1 à 5), commentaire, date |
+| `ContactMessage` | Message envoyé au refuge depuis l'espace client. | utilisateur, sujet, message, traité, date |
 
 Deux énumérations typent les états : `AnimalStatus` (disponible, en cours d'adoption,
 adopté) et `AdoptionRequestStatus` (nouvelle, en cours, acceptée, refusée). Les dons
@@ -169,9 +171,9 @@ Espace réservé aux utilisateurs disposant du rôle `ROLE_ADMIN`, généré ave
 sous le chemin `/admin` (route `admin`, protégée par `access_control` et l'attribut `#[IsGranted]`).
 
 - `/admin` — tableau de bord (nombre d'animaux, de demandes d'adoption et d'utilisateurs, nombre et
-  total des dons, nombre d'avis).
-- Gestion **des animaux**, **des demandes d'adoption**, **des dons**, **des avis** et **des
-  utilisateurs** via les contrôleurs CRUD d'EasyAdmin.
+  total des dons, nombre d'avis, nombre de messages de contact).
+- Gestion **des animaux**, **des demandes d'adoption**, **des dons**, **des avis**,
+  **des messages de contact** et **des utilisateurs** via les contrôleurs CRUD d'EasyAdmin.
 
 Le tableau de bord et les contrôleurs CRUD se trouvent dans `src/Controller/Admin/` et
 configurent l'affichage en français (libellés, badges de statut, filtres). Les énumérations
@@ -190,7 +192,7 @@ l'attribut `#[IsGranted]`.
 
 - `/profil` (route `app_profile`) — affiche toutes les informations du compte (nom, email, rôles,
   date d'inscription, dernière connexion, nombre de demandes), le suivi de ses demandes
-  d'adoption ainsi que ses avis.
+  d'adoption ainsi que ses avis. Un lien permet de **contacter le refuge**.
 - `/profil/modifier` (route `app_profile_edit`) — permet de modifier le prénom, le nom et l'adresse
   email, et d'ajouter ou remplacer une **photo de profil** (JPEG, PNG ou WebP, 4 Mo max). Les photos
   sont stockées dans `public/uploads/users/` (répertoire non versionné) via le service
@@ -223,6 +225,18 @@ Avis généraux portant sur le refuge (et non sur un animal en particulier).
   (ou par un administrateur), protégée par un jeton CSRF.
 
 Les avis d'un utilisateur sont également visibles dans la section « Mes avis » de son profil.
+
+## Contact
+
+Formulaire de contact destiné aux utilisateurs connectés (`ROLE_USER`), accessible depuis l'espace
+client (menu utilisateur et page de profil).
+
+- `GET|POST /profil/contact` (route `app_contact`) — envoi d'un message au refuge (sujet et message),
+  rattaché au compte de l'utilisateur. La page liste également les messages déjà envoyés et leur état
+  de traitement.
+
+Les messages sont enregistrés dans la table `contact_message` (entité `ContactMessage`) et sont
+consultables depuis le back-office, où ils peuvent être marqués comme **traités**.
 
 ## Configuration
 
@@ -331,3 +345,4 @@ front sont servis par **AssetMapper** (importmap natif) et le style repose sur *
 - [x] Feature 9 — Tests unitaires et fonctionnels.
 - [x] Page de don (démonstration) et suivi des dons dans le back-office.
 - [x] Avis généraux sur le refuge (page publique, dépôt par les utilisateurs, modération en back-office).
+- [x] Formulaire de contact dans l'espace client et suivi des messages en back-office.

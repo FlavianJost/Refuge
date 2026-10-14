@@ -4,6 +4,7 @@ namespace App\Controller\Admin;
 
 use App\Repository\AdoptionRequestRepository;
 use App\Repository\AnimalRepository;
+use App\Repository\ContactMessageRepository;
 use App\Repository\DonationRepository;
 use App\Repository\ReviewRepository;
 use App\Repository\UserRepository;
@@ -24,6 +25,7 @@ class DashboardController extends AbstractDashboardController
         private readonly AdoptionRequestRepository $adoptionRequestRepository,
         private readonly DonationRepository $donationRepository,
         private readonly ReviewRepository $reviewRepository,
+        private readonly ContactMessageRepository $contactMessageRepository,
     ) {
     }
 
@@ -36,6 +38,8 @@ class DashboardController extends AbstractDashboardController
             'donation_count' => $this->donationRepository->count([]),
             'donation_total' => $this->donationRepository->getTotalAmount() / 100,
             'review_count' => $this->reviewRepository->count([]),
+            'contact_count' => $this->contactMessageRepository->count([]),
+            'contact_unhandled' => $this->contactMessageRepository->countUnhandled(),
         ]);
     }
 
@@ -53,6 +57,7 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::linkTo(AdoptionRequestCrudController::class, 'Demandes d\'adoption', 'fa fa-hand-holding-heart');
         yield MenuItem::linkTo(DonationCrudController::class, 'Dons', 'fa fa-donate');
         yield MenuItem::linkTo(ReviewCrudController::class, 'Avis', 'fa fa-star');
+        yield MenuItem::linkTo(ContactMessageCrudController::class, 'Messages', 'fa fa-envelope');
         yield MenuItem::section('Administration');
         yield MenuItem::linkTo(UserCrudController::class, 'Utilisateurs', 'fa fa-users');
         yield MenuItem::section();

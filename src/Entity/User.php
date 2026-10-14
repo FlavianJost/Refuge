@@ -66,12 +66,20 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OrderBy(['createdAt' => 'DESC'])]
     private Collection $reviews;
 
+    /**
+     * @var Collection<int, ContactMessage>
+     */
+    #[ORM\OneToMany(targetEntity: ContactMessage::class, mappedBy: 'user')]
+    #[ORM\OrderBy(['createdAt' => 'DESC'])]
+    private Collection $contactMessages;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
         $this->processedRequests = new ArrayCollection();
         $this->adoptionRequests = new ArrayCollection();
         $this->reviews = new ArrayCollection();
+        $this->contactMessages = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -256,6 +264,33 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         if ($this->reviews->removeElement($review) && $review->getUser() === $this) {
             $review->setUser(null);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ContactMessage>
+     */
+    public function getContactMessages(): Collection
+    {
+        return $this->contactMessages;
+    }
+
+    public function addContactMessage(ContactMessage $contactMessage): static
+    {
+        if (!$this->contactMessages->contains($contactMessage)) {
+            $this->contactMessages->add($contactMessage);
+            $contactMessage->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeContactMessage(ContactMessage $contactMessage): static
+    {
+        if ($this->contactMessages->removeElement($contactMessage) && $contactMessage->getUser() === $this) {
+            $contactMessage->setUser(null);
         }
 
         return $this;
