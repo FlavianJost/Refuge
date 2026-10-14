@@ -6,6 +6,7 @@ use App\Entity\Animal;
 use App\Enum\AnimalStatus;
 use App\Enum\Species;
 use App\Repository\AnimalRepository;
+use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -32,7 +33,7 @@ class AnimalController extends AbstractController
     }
 
     #[Route('/animaux/{slug}', name: 'app_animal_show', methods: ['GET'])]
-    public function show(Animal $animal): Response
+    public function show(#[MapEntity(mapping: ['slug' => 'slug'])] Animal $animal): Response
     {
         return $this->render('Animal/show.html.twig', [
             'animal' => $animal,
