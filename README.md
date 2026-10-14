@@ -28,11 +28,13 @@ demandes d'adoption et d'organiser les niveaux d'accès (visiteur, bénévole, a
 - Page de don (démonstration) avec enregistrement des dons en base.
 - Avis sur le refuge : consultation publique et dépôt d'avis par les utilisateurs connectés.
 - Formulaire de contact dans l'espace client, avec suivi des messages dans le back-office.
+- Changement de mot de passe et authentification à deux facteurs (TOTP) depuis le profil.
 - Back-office d'administration (gestion des utilisateurs, supervision).
 
 ## Prérequis
 
-- PHP >= 8.2 avec les extensions `ctype`, `iconv` (fournies avec Symfony Flex).
+- PHP >= 8.2 avec les extensions `ctype`, `iconv` (fournies avec Symfony Flex) et `gd`
+  (requise pour la génération du QR code de l'authentification à deux facteurs).
 - Composer 2.
 - Un serveur de base de données MySQL/MariaDB (ou SQLite pour un démarrage rapide).
 - Symfony CLI (optionnel, mais recommandé).
@@ -68,7 +70,7 @@ L'application s'appuie sur trois entités Doctrine :
 
 | Entité | Description | Champs principaux |
 | --- | --- | --- |
-| `User` | Utilisateur de l'application (visiteur, bénévole, administrateur). | email, rôles, mot de passe, prénom, nom, dernière connexion |
+| `User` | Utilisateur de l'application (visiteur, bénévole, administrateur). | email, rôles, mot de passe, prénom, nom, dernière connexion, secret TOTP |
 | `Animal` | Animal accueilli au refuge. | nom, espèce, race, âge, description, statut, photo |
 | `AdoptionRequest` | Demande d'adoption déposée par un utilisateur pour un animal. | animal, utilisateur, message, statut, traitement |
 | `Donation` | Don effectué via la page de démonstration (paiement simulé). | montant (en centimes), donateur, email, message, statut, date |
@@ -114,6 +116,28 @@ automatiquement à chaque authentification (`App\EventListener\LoginListener`).
 
 Les zones sensibles sont également protégées au niveau des contrôleurs par l'attribut
 `#[IsGranted]` (défense en profondeur en plus des `access_control`).
+
+## Authentification à deux facteurs (TOTP)
+
+En complément du mot de passe, chaque utilisateur peut activer une **authentification à deux
+facteurs** basée sur le temps (TOTP), compatible avec les applications d'authentification
+(Google Authenticator, Authy, FreeOTP...). Elle s'appuie sur le bundle **`scheb/2fa-bundle`**
+et le générateur de QR codes **`endroid/qr-code`**.
+
+- `GET|POST /profil/2fa/activer` (route `app_profile_2fa_enable`) — affiche un **QR code** (et la
+  clé manuelle) à scanner, puis vérifie le premier code avant d'activer la 2FA. Le secret n'est
+  enregistré qu'après validation du code.
+- `POST /profil/2fa/desactiver` (route `app_profile_2fa_disable`) — désactive la 2FA et supprime
+  le secret enregistré (protégé par un jeton CSRF).
+
+Une fois la 2FA activée, la connexion (`/login`) demande, dans un second écran
+(`GET /2fa`, route `2fa_login`), le code à 6 chiffres généré par l'application
+(`POST /2fa_check`, route `2fa_login_check`). En cas d'échec, l'utilisateur peut annuler et se
+déconnecter.
+
+Le secret est stocké sur l'utilisateur (`totp_secret`, `totp_enabled`), qui implémente
+`Scheb\TwoFactorBundle\Model\Totp\TwoFactorInterface`. La configuration du bundle se trouve dans
+`config/packages/scheb_2fa.yaml` et ses routes dans `config/routes/scheb_2fa.yaml`.
 
 ## Catalogue des animaux (public)
 
@@ -192,11 +216,13 @@ l'attribut `#[IsGranted]`.
 
 - `/profil` (route `app_profile`) — affiche toutes les informations du compte (nom, email, rôles,
   date d'inscription, dernière connexion, nombre de demandes), le suivi de ses demandes
-  d'adoption ainsi que ses avis. Un lien permet de **contacter le refuge**.
+  d'adoption ainsi que ses avis. Un lien permet de **contacter le refuge** et une section
+  « Sécurité » permet de gérer l'**authentification à deux facteurs**.
 - `/profil/modifier` (route `app_profile_edit`) — permet de modifier le prénom, le nom et l'adresse
-  email, et d'ajouter ou remplacer une **photo de profil** (JPEG, PNG ou WebP, 4 Mo max). Les photos
-  sont stockées dans `public/uploads/users/` (répertoire non versionné) via le service
-  `App\Service\UserPhotoUploader`.
+  email, d'ajouter ou remplacer une **photo de profil** (JPEG, PNG ou WebP, 4 Mo max) et de
+  **changer le mot de passe** (le mot de passe actuel est exigé ; laissez les champs vides pour le
+  conserver). Les photos sont stockées dans `public/uploads/users/` (répertoire non versionné) via
+  le service `App\Service\UserPhotoUploader`.
 
 ## Dons (démonstration)
 
@@ -329,6 +355,8 @@ front sont servis par **AssetMapper** (importmap natif) et le style repose sur *
 - **Twig** — moteur de templates.
 - **AssetMapper + Bootstrap 5** — gestion des assets et interface responsive.
 - **EasyAdmin 5** — back-office d'administration.
+- **scheb/2fa-bundle + scheb/2fa-totp** — authentification à deux facteurs (TOTP).
+- **endroid/qr-code** — génération des QR codes d'authentification.
 - **PHPUnit** — tests.
 
 ## Feuille de route
@@ -346,3 +374,4 @@ front sont servis par **AssetMapper** (importmap natif) et le style repose sur *
 - [x] Page de don (démonstration) et suivi des dons dans le back-office.
 - [x] Avis généraux sur le refuge (page publique, dépôt par les utilisateurs, modération en back-office).
 - [x] Formulaire de contact dans l'espace client et suivi des messages en back-office.
+- [x] Changement de mot de passe et authentification à deux facteurs (TOTP) depuis le profil.

@@ -1,0 +1,7 @@
+scheb_two_factor:
+    totp:
+        enabled: true
+        server_name: 'Refuge Animalier'
+        issuer: 'Refuge Animalier'
+        leeway: 15
+        template: Security/two_factor.html.twig

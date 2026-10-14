@@ -1,0 +1,52 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Activer l'authentification à deux facteurs{% endblock %}
+
+{% block body %}
+    <div class="container my-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <h1 class="h2 mb-4">Activer l'authentification à deux facteurs</h1>
+
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        {% if error %}
+                            <div class="alert alert-danger" role="alert">{{ error }}</div>
+                        {% endif %}
+
+                        <p>
+                            Scannez ce QR code avec votre application d'authentification
+                            (Google Authenticator, Authy, FreeOTP...), puis saisissez le code généré.
+                        </p>
+
+                        <div class="text-center my-4">
+                            <img src="{{ qrCodeDataUri }}" alt="QR code d'authentification à deux facteurs" width="220" height="220">
+                        </div>
+
+                        <p class="text-center text-muted">
+                            Vous ne pouvez pas scanner le code ? Saisissez cette clé manuellement :<br>
+                            <code>{{ secret }}</code>
+                        </p>
+
+                        <hr class="my-4">
+
+                        <form method="post" action="{{ path('app_profile_2fa_enable') }}">
+                            <div class="mb-3">
+                                <label for="code" class="form-label">Code de vérification</label>
+                                <input id="code" type="text" name="code" class="form-control"
+                                       inputmode="numeric" autocomplete="one-time-code" autofocus required>
+                            </div>
+
+                            <input type="hidden" name="_token" value="{{ csrf_token('totp-enable') }}">
+
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary">Activer</button>
+                                <a href="{{ path('app_profile') }}" class="btn btn-link">Annuler</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
