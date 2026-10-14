@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Enum\AdoptionRequestStatus;
+use App\Enum\HousingType;
 use App\Repository\AdoptionRequestRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -32,6 +33,22 @@ class AdoptionRequest
     #[ORM\Column(type: 'text', nullable: true)]
     #[Assert\Length(max: 2000)]
     private ?string $message = null;
+
+    #[ORM\Column(length: 20, enumType: HousingType::class)]
+    private HousingType $housing = HousingType::OTHER;
+
+    #[ORM\Column(type: 'boolean')]
+    private bool $hasGarden = false;
+
+    #[ORM\Column(type: 'boolean')]
+    private bool $hasOtherPets = false;
+
+    #[ORM\Column(type: 'boolean')]
+    private bool $hasChildren = false;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    #[Assert\Length(max: 2000)]
+    private ?string $experience = null;
 
     #[ORM\Column(length: 30, enumType: AdoptionRequestStatus::class)]
     private AdoptionRequestStatus $status = AdoptionRequestStatus::PENDING;
@@ -104,6 +121,66 @@ class AdoptionRequest
     public function setMessage(?string $message): static
     {
         $this->message = $message;
+
+        return $this;
+    }
+
+    public function getHousing(): HousingType
+    {
+        return $this->housing;
+    }
+
+    public function setHousing(HousingType $housing): static
+    {
+        $this->housing = $housing;
+
+        return $this;
+    }
+
+    public function hasGarden(): bool
+    {
+        return $this->hasGarden;
+    }
+
+    public function setHasGarden(bool $hasGarden): static
+    {
+        $this->hasGarden = $hasGarden;
+
+        return $this;
+    }
+
+    public function hasOtherPets(): bool
+    {
+        return $this->hasOtherPets;
+    }
+
+    public function setHasOtherPets(bool $hasOtherPets): static
+    {
+        $this->hasOtherPets = $hasOtherPets;
+
+        return $this;
+    }
+
+    public function hasChildren(): bool
+    {
+        return $this->hasChildren;
+    }
+
+    public function setHasChildren(bool $hasChildren): static
+    {
+        $this->hasChildren = $hasChildren;
+
+        return $this;
+    }
+
+    public function getExperience(): ?string
+    {
+        return $this->experience;
+    }
+
+    public function setExperience(?string $experience): static
+    {
+        $this->experience = $experience;
 
         return $this;
     }

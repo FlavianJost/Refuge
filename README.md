@@ -115,20 +115,21 @@ L'application s'appuie sur **dix entités Doctrine** :
 | `Animal` | Animal accueilli au refuge. | nom, slug, espèce, race, âge, description, statut, photo, nombre de vues |
 | `AnimalPhoto` | Photo supplémentaire rattachée à la galerie d'un animal (la photo principale reste portée par `Animal`). | animal, nom de fichier, date |
 | `MedicalRecord` | Acte médical consigné dans le dossier médical d'un animal (accès réservé à l'équipe). | animal, date, type d'acte, motif, détails, vétérinaire |
-| `AdoptionRequest` | Demande d'adoption déposée par un utilisateur pour un animal. | animal, utilisateur, message, statut, traitement |
+| `AdoptionRequest` | Demande d'adoption déposée par un utilisateur pour un animal. | animal, utilisateur, message, questionnaire pré-adoption, statut, traitement |
 | `AdoptionRequestEvent` | Étape du parcours d'une demande d'adoption (dépôt, prise en charge, acceptation, refus). | demande, statut, commentaire, auteur, date |
 | `Donation` | Don effectué via la page de démonstration (paiement simulé). | montant (en centimes), donateur, email, message, statut, date |
 | `Review` | Avis publié par un utilisateur sur le refuge. | utilisateur, note (1 à 5), commentaire, date |
 | `Conversation` | Fil de discussion entre un utilisateur et le refuge (un fil par utilisateur). | utilisateur, compteurs de messages non lus, dates |
 | `Message` | Message publié dans une conversation, par un utilisateur ou un membre du refuge. | conversation, auteur, texte, émis par l'équipe, date |
 
-Cinq énumérations typent les valeurs métier, avec des libellés français :
+Six énumérations typent les valeurs métier, avec des libellés français :
 
 - `Species` : chien, chat, lapin, oiseau, rongeur, autre.
 - `AnimalStatus` : disponible, en cours d'adoption, adopté.
 - `AdoptionRequestStatus` : nouvelle, en cours de traitement, acceptée, refusée.
 - `DonationStatus` : confirmé, en attente, échoué.
 - `MedicalRecordCategory` : vaccination, traitement, soins, visite vétérinaire, chirurgie, autre.
+- `HousingType` : appartement, maison, autre.
 
 Elles implémentent `TranslatableInterface`, ce qui permet à EasyAdmin d'afficher directement leurs
 libellés français dans les formulaires, les listes et les filtres.
@@ -214,6 +215,8 @@ dans un carrousel.
   accessible depuis la fiche de l'animal. La demande est **réservée aux utilisateurs connectés** :
   un visiteur est redirigé vers la page de connexion. Elle est rattachée au compte de l'utilisateur
   (pas de saisie de coordonnées) et une demande en doublon pour le même animal est refusée.
+  Le formulaire intègre un **questionnaire pré-adoption** (type de logement, jardin, autres animaux,
+  enfants, expérience) en plus du message libre.
 - `GET /profil/adoptions/{id}` (`app_adoption_request_show`) — suivi d'une demande : statut courant et
   **parcours** complet. Seul le propriétaire de la demande peut y accéder.
 

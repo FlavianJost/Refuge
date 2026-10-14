@@ -42,6 +42,19 @@
                         </p>
 
                         {{ form_start(form) }}
+                            <fieldset class="mb-4">
+                                <legend class="h6 text-uppercase text-muted">Questionnaire pré-adoption</legend>
+                                <div class="row g-3">
+                                    <div class="col-md-6">{{ form_row(form.housing) }}</div>
+                                    <div class="col-md-6">
+                                        {{ form_row(form.hasGarden) }}
+                                        {{ form_row(form.hasOtherPets) }}
+                                        {{ form_row(form.hasChildren) }}
+                                    </div>
+                                    <div class="col-12">{{ form_row(form.experience) }}</div>
+                                </div>
+                            </fieldset>
+
                             {{ form_row(form.message) }}
 
                             <div class="mt-4 d-flex gap-2">

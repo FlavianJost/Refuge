@@ -1,0 +1,18 @@
+<dl class="row mb-0">
+    <dt class="col-sm-5">Type de logement</dt>
+    <dd class="col-sm-7">{{ adoption_request.housing.label() }}</dd>
+
+    <dt class="col-sm-5">Jardin</dt>
+    <dd class="col-sm-7">{{ adoption_request.hasGarden ? 'Oui' : 'Non' }}</dd>
+
+    <dt class="col-sm-5">Autres animaux</dt>
+    <dd class="col-sm-7">{{ adoption_request.hasOtherPets ? 'Oui' : 'Non' }}</dd>
+
+    <dt class="col-sm-5">Enfants</dt>
+    <dd class="col-sm-7">{{ adoption_request.hasChildren ? 'Oui' : 'Non' }}</dd>
+
+    {% if adoption_request.experience %}
+        <dt class="col-sm-5">Expérience</dt>
+        <dd class="col-sm-7 mb-0">{{ adoption_request.experience|nl2br }}</dd>
+    {% endif %}
+</dl>

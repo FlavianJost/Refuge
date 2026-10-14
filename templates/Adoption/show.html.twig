@@ -45,6 +45,13 @@
                     </div>
                 </div>
 
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body">
+                        <h2 class="h5 mb-3">Questionnaire pré-adoption</h2>
+                        {% include 'Adoption/_questionnaire.html.twig' with { adoption_request: adoption_request } only %}
+                    </div>
+                </div>
+
                 {% if adoption_request.message %}
                     <div class="card border-0 shadow-sm">
                         <div class="card-body">
