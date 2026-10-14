@@ -4,7 +4,10 @@
 
 {% block body %}
     <div class="container py-5">
-        <h1 class="h2 mb-4">Modifier « {{ animal.name }} »</h1>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h2 mb-0">Modifier « {{ animal.name }} »</h1>
+            <a href="{{ path('app_medical_manage_index', { id: animal.id }) }}" class="btn btn-outline-info">Dossier médical</a>
+        </div>
 
         <div class="card border-0 shadow-sm">
             <div class="card-body p-4">

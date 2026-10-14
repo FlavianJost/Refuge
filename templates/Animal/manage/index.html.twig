@@ -46,6 +46,7 @@
                                 <td>{{ animal.views }}</td>
                                 <td class="text-end">
                                     <a href="{{ path('app_animal_show', { slug: animal.slug }) }}" class="btn btn-sm btn-outline-secondary">Voir</a>
+                                    <a href="{{ path('app_medical_manage_index', { id: animal.id }) }}" class="btn btn-sm btn-outline-info">Médical</a>
                                     <a href="{{ path('app_animal_manage_edit', { id: animal.id }) }}" class="btn btn-sm btn-outline-primary">Modifier</a>
                                     <form method="post" action="{{ path('app_animal_manage_delete', { id: animal.id }) }}" class="d-inline"
                                           onsubmit="return confirm('Supprimer cet animal ?');">

@@ -1,0 +1,67 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Dossier médical de {{ animal.name }} - Refuge Animalier{% endblock %}
+
+{% block body %}
+    <div class="container py-5">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ path('app_animal_manage_index') }}">Gestion des animaux</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Dossier médical de {{ animal.name }}</li>
+            </ol>
+        </nav>
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h2 mb-0">Dossier médical — « {{ animal.name }} »</h1>
+            <a href="{{ path('app_animal_manage_edit', { id: animal.id }) }}" class="btn btn-outline-secondary">Retour à la fiche</a>
+        </div>
+
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body p-4">
+                <h2 class="h5 mb-3">Ajouter un acte médical</h2>
+                {% include 'Medical/_form.html.twig' with { form: form, animal: animal } only %}
+            </div>
+        </div>
+
+        {% if records is empty %}
+            <div class="alert alert-info" role="alert">Aucun acte médical enregistré pour cet animal.</div>
+        {% else %}
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Motif</th>
+                            <th>Vétérinaire</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in records %}
+                            <tr>
+                                <td>{{ record.date|date('d/m/Y') }}</td>
+                                <td><span class="badge text-bg-{{ record.category.badgeClass() }}">{{ record.category.label() }}</span></td>
+                                <td>
+                                    {{ record.title }}
+                                    {% if record.description %}
+                                        <div class="small text-muted">{{ record.description|nl2br }}</div>
+                                    {% endif %}
+                                </td>
+                                <td>{{ record.veterinarian ?: '—' }}</td>
+                                <td class="text-end">
+                                    <a href="{{ path('app_medical_manage_edit', { id: animal.id, record: record.id }) }}" class="btn btn-sm btn-outline-primary">Modifier</a>
+                                    <form method="post" action="{{ path('app_medical_manage_delete', { id: animal.id, record: record.id }) }}" class="d-inline"
+                                          onsubmit="return confirm('Supprimer cet acte médical ?');">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete-medical-' ~ record.id) }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Supprimer</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

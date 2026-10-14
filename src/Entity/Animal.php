@@ -68,11 +68,19 @@ class Animal
     #[ORM\OrderBy(['createdAt' => 'ASC', 'id' => 'ASC'])]
     private Collection $photos;
 
+    /**
+     * @var Collection<int, MedicalRecord>
+     */
+    #[ORM\OneToMany(targetEntity: MedicalRecord::class, mappedBy: 'animal', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[ORM\OrderBy(['date' => 'DESC', 'id' => 'DESC'])]
+    private Collection $medicalRecords;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
         $this->adoptionRequests = new ArrayCollection();
         $this->photos = new ArrayCollection();
+        $this->medicalRecords = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -266,6 +274,33 @@ class Animal
     {
         if ($this->photos->removeElement($photo) && $photo->getAnimal() === $this) {
             $photo->setAnimal(null);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, MedicalRecord>
+     */
+    public function getMedicalRecords(): Collection
+    {
+        return $this->medicalRecords;
+    }
+
+    public function addMedicalRecord(MedicalRecord $record): static
+    {
+        if (!$this->medicalRecords->contains($record)) {
+            $this->medicalRecords->add($record);
+            $record->setAnimal($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMedicalRecord(MedicalRecord $record): static
+    {
+        if ($this->medicalRecords->removeElement($record) && $record->getAnimal() === $this) {
+            $record->setAnimal(null);
         }
 
         return $this;

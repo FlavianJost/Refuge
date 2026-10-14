@@ -107,25 +107,27 @@ php bin/console asset-map:compile
 
 ## Modèle de données
 
-L'application s'appuie sur **huit entités Doctrine** :
+L'application s'appuie sur **neuf entités Doctrine** :
 
 | Entité | Description | Champs principaux |
 | --- | --- | --- |
 | `User` | Utilisateur de l'application (visiteur, bénévole, administrateur). | email, rôles, mot de passe, prénom, nom, photo, dernière connexion, secret TOTP |
 | `Animal` | Animal accueilli au refuge. | nom, slug, espèce, race, âge, description, statut, photo, nombre de vues |
 | `AnimalPhoto` | Photo supplémentaire rattachée à la galerie d'un animal (la photo principale reste portée par `Animal`). | animal, nom de fichier, date |
+| `MedicalRecord` | Acte médical consigné dans le dossier médical d'un animal (accès réservé à l'équipe). | animal, date, type d'acte, motif, détails, vétérinaire |
 | `AdoptionRequest` | Demande d'adoption déposée par un utilisateur pour un animal. | animal, utilisateur, message, statut, traitement |
 | `Donation` | Don effectué via la page de démonstration (paiement simulé). | montant (en centimes), donateur, email, message, statut, date |
 | `Review` | Avis publié par un utilisateur sur le refuge. | utilisateur, note (1 à 5), commentaire, date |
 | `Conversation` | Fil de discussion entre un utilisateur et le refuge (un fil par utilisateur). | utilisateur, compteurs de messages non lus, dates |
 | `Message` | Message publié dans une conversation, par un utilisateur ou un membre du refuge. | conversation, auteur, texte, émis par l'équipe, date |
 
-Quatre énumérations typent les valeurs métier, avec des libellés français :
+Cinq énumérations typent les valeurs métier, avec des libellés français :
 
 - `Species` : chien, chat, lapin, oiseau, rongeur, autre.
 - `AnimalStatus` : disponible, en cours d'adoption, adopté.
 - `AdoptionRequestStatus` : nouvelle, en cours de traitement, acceptée, refusée.
 - `DonationStatus` : confirmé, en attente, échoué.
+- `MedicalRecordCategory` : vaccination, traitement, soins, visite vétérinaire, chirurgie, autre.
 
 Elles implémentent `TranslatableInterface`, ce qui permet à EasyAdmin d'afficher directement leurs
 libellés français dans les formulaires, les listes et les filtres.
@@ -319,6 +321,19 @@ L'upload de photo est pris en charge par le service `App\Service\AnimalPhotoUplo
 précédente est supprimée lors d'un remplacement. Le formulaire permet également d'**ajouter
 plusieurs photos** à la galerie d'un animal en une seule fois ; chaque photo y est ensuite listée et
 peut être supprimée individuellement.
+
+### Dossier médical
+
+Chaque animal dispose d'un **dossier médical** accessible uniquement à l'équipe (`ROLE_VOLUNTEER`) :
+
+- `GET|POST /gestion/animaux/{id}/medical` (`app_medical_manage_index`) — historique des actes et
+  ajout d'un nouvel acte.
+- `GET|POST /gestion/animaux/{id}/medical/{record}/modifier` (`app_medical_manage_edit`) — édition.
+- `POST /gestion/animaux/{id}/medical/{record}/supprimer` (`app_medical_manage_delete`) — suppression
+  avec jeton CSRF.
+
+Chaque acte est enregistré dans la table `medical_record` (entité `MedicalRecord`) avec sa date, son
+type (`MedicalRecordCategory`), son motif, ses détails et le vétérinaire concerné.
 
 ### Demandes d'adoption et messagerie
 
