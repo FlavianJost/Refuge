@@ -1,4 +1,7 @@
 ###> symfony/framework-bundle ###
+/.env.local
+/.env.local.php
+/.env.*.local
 /config/secrets/prod/prod.decrypt.private.php
 /public/bundles/
 /var/
@@ -17,10 +20,6 @@
 ###> IDE ###
 /.idea/
 ###< IDE ###
-
-# Config OAuth Google "test" : contient des identifiants en clair.
-# Sera remplacée par une config valide lisant les secrets depuis .env (Feature 8).
-/config/packages/hwi_oauth.yaml.d
 
 ###> uploads (photos des animaux) ###
 /public/uploads/animals/*
