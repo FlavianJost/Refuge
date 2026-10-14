@@ -107,32 +107,6 @@ automatiquement à chaque authentification (`App\EventListener\LoginListener`).
 Les zones sensibles sont également protégées au niveau des contrôleurs par l'attribut
 `#[IsGranted]` (défense en profondeur en plus des `access_control`).
 
-## Connexion via Google (OAuth)
-
-L'authentification via **Google** est prise en charge par **HWIOAuthBundle**.
-
-- Un bouton « Continuer avec Google » est proposé sur la page de connexion (`/login`),
-  pointant vers `/connect/google`.
-- Au retour de Google (`/connect/google/check`), l'utilisateur est recherché par son adresse
-  email ; s'il n'existe pas, un compte `ROLE_USER` est créé automatiquement
-  (`App\Security\GoogleOAuthUserProvider`). Les comptes créés via OAuth n'ont pas de mot de
-  passe local.
-
-Configuration requise :
-
-1. Créer des identifiants OAuth 2.0 dans la
-   [console Google Cloud](https://console.cloud.google.com/apis/credentials).
-2. Déclarer l'URI de redirection autorisée : `http://localhost:8000/connect/google/check`.
-3. Renseigner les identifiants dans `.env.local` (fichier **non versionné**) :
-
-   ```dotenv
-   OAUTH_GOOGLE_CLIENT_ID=...
-   OAUTH_GOOGLE_CLIENT_SECRET=...
-   ```
-
-Les secrets ne sont jamais committés : `.env.local` est ignoré par Git (voir `.gitignore`),
-et `.env` ne contient que des valeurs vides.
-
 ## Catalogue des animaux (public)
 
 - `GET /animaux` — liste des animaux avec filtres par **espèce** et **situation**
@@ -211,7 +185,6 @@ Les variables d'environnement sont définies dans les fichiers `.env` :
 | `APP_ENV` | Environnement courant (`dev`, `test`, `prod`). |
 | `APP_SECRET` | Clé secrète utilisée par Symfony. |
 | `DATABASE_URL` | Connexion à la base de données (MySQL/MariaDB). |
-| `OAUTH_GOOGLE_CLIENT_ID` / `OAUTH_GOOGLE_CLIENT_SECRET` | Identifiants Google (connexion OAuth). |
 
 Pour vos réglages locaux, créez un fichier `.env.local` (non versionné) et **ne committez
 jamais** de secrets dans les fichiers `.env` versionnés.
@@ -266,7 +239,6 @@ front sont servis par **AssetMapper** (importmap natif) et le style repose sur *
 - **Twig** — moteur de templates.
 - **AssetMapper + Bootstrap 5** — gestion des assets et interface responsive.
 - **EasyAdmin 5** — back-office d'administration.
-- **HWIOAuthBundle** — authentification via fournisseurs OAuth (Google).
 - **PHPUnit** — tests.
 
 ## Feuille de route
@@ -279,5 +251,5 @@ front sont servis par **AssetMapper** (importmap natif) et le style repose sur *
 - [x] Feature 6 — Demandes d'adoption.
 - [x] Profil utilisateur.
 - [x] Feature 7 — Back-office EasyAdmin.
-- [x] Feature 8 — Connexion Google (OAuth).
+- [ ] Connexion Google (OAuth) — retirée de cette version, à réintroduire ultérieurement.
 - [ ] Feature 9 — Tests unitaires et fonctionnels.

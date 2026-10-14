@@ -1,3 +1,0 @@
-hwi_oauth_redirect:
-    resource: "@HWIOAuthBundle/Resources/config/routing/redirect.php"
-    prefix: /connect
