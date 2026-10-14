@@ -7,6 +7,7 @@
     {% set requests_url = ea_url().setController('App\\Controller\\Admin\\AdoptionRequestCrudController').setAction('index') %}
     {% set users_url = ea_url().setController('App\\Controller\\Admin\\UserCrudController').setAction('index') %}
     {% set donations_url = ea_url().setController('App\\Controller\\Admin\\DonationCrudController').setAction('index') %}
+    {% set reviews_url = ea_url().setController('App\\Controller\\Admin\\ReviewCrudController').setAction('index') %}
 
     <div class="row g-4">
         <div class="col-md-4">
@@ -51,7 +52,7 @@
             </div>
         </div>
 
-        <div class="col-md-8">
+        <div class="col-md-4">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body d-flex flex-column">
                     <div class="text-uppercase text-muted small fw-bold">Total des dons confirmés</div>
@@ -59,10 +60,20 @@
                 </div>
             </div>
         </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body d-flex flex-column">
+                    <div class="text-uppercase text-muted small fw-bold">Avis</div>
+                    <div class="display-6 fw-bold mb-4">{{ review_count }}</div>
+                    <a class="btn btn-sm btn-primary mt-auto" href="{{ reviews_url }}">Voir les avis</a>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="alert alert-light border mt-4 mb-0">
         Bienvenue dans l'espace d'administration du refuge. Utilisez le menu de gauche pour gérer les animaux,
-        les demandes d'adoption, les dons et les utilisateurs.
+        les demandes d'adoption, les dons, les avis et les utilisateurs.
     </div>
 {% endblock %}
