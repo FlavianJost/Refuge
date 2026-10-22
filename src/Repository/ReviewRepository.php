@@ -3,7 +3,6 @@
 namespace App\Repository;
 
 use App\Entity\Review;
-use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -27,19 +26,6 @@ class ReviewRepository extends ServiceEntityRepository
             ->leftJoin('r.user', 'u')
             ->orderBy('r.createdAt', 'DESC')
             ->setMaxResults($limit)
-            ->getQuery()
-            ->getResult();
-    }
-
-    /**
-     * @return Review[]
-     */
-    public function findByUser(User $user): array
-    {
-        return $this->createQueryBuilder('r')
-            ->andWhere('r.user = :user')
-            ->setParameter('user', $user)
-            ->orderBy('r.createdAt', 'DESC')
             ->getQuery()
             ->getResult();
     }

@@ -206,13 +206,6 @@ class Animal
         return $this->updatedAt;
     }
 
-    public function setUpdatedAt(?\DateTimeImmutable $updatedAt): static
-    {
-        $this->updatedAt = $updatedAt;
-
-        return $this;
-    }
-
     public function touch(): static
     {
         $this->updatedAt = new \DateTimeImmutable();

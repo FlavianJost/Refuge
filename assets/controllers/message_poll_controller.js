@@ -1,8 +1,8 @@
 import { Controller } from '@hotwired/stimulus';
 
 /*
- * Polls a messaging endpoint every few seconds and appends new messages
- * to the conversation thread, giving a near real-time feel.
+ * Interroge la messagerie toutes les quelques secondes et ajoute les nouveaux
+ * messages à la discussion, ce qui donne l'impression d'un échange en direct.
  */
 export default class extends Controller {
     static targets = ['list'];
@@ -45,7 +45,7 @@ export default class extends Controller {
                 this.afterValue = data.lastId;
             }
         } catch (error) {
-            // Ignore transient errors; the next tick will retry.
+            // Les erreurs passagères sont ignorées, l'appel suivant réessaiera.
         }
     }
 

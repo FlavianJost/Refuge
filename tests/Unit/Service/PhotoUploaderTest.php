@@ -2,17 +2,17 @@
 
 namespace App\Tests\Unit\Service;
 
-use App\Service\UserPhotoUploader;
+use App\Service\PhotoUploader;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
-class UserPhotoUploaderTest extends TestCase
+class PhotoUploaderTest extends TestCase
 {
     private string $directory;
 
     protected function setUp(): void
     {
-        $this->directory = sys_get_temp_dir().'/refuge_user_uploads_'.uniqid('', true);
+        $this->directory = sys_get_temp_dir().'/refuge_uploads_'.uniqid('', true);
         mkdir($this->directory, 0777, true);
     }
 
@@ -26,17 +26,26 @@ class UserPhotoUploaderTest extends TestCase
 
     public function testUploadMovesTheFileAndReturnsAPrefixedName(): void
     {
-        $uploader = new UserPhotoUploader($this->directory);
+        $uploader = new PhotoUploader($this->directory, 'animal_');
+
+        $filename = $uploader->upload($this->createUploadedFile());
+
+        self::assertStringStartsWith('animal_', $filename);
+        self::assertFileExists($this->directory.'/'.$filename);
+    }
+
+    public function testThePrefixDependsOnTheUploader(): void
+    {
+        $uploader = new PhotoUploader($this->directory, 'user_');
 
         $filename = $uploader->upload($this->createUploadedFile());
 
         self::assertStringStartsWith('user_', $filename);
-        self::assertFileExists($this->directory.'/'.$filename);
     }
 
     public function testRemoveDeletesTheFile(): void
     {
-        $uploader = new UserPhotoUploader($this->directory);
+        $uploader = new PhotoUploader($this->directory, 'animal_');
         $filename = $uploader->upload($this->createUploadedFile());
 
         $uploader->remove($filename);
@@ -46,7 +55,7 @@ class UserPhotoUploaderTest extends TestCase
 
     public function testRemoveWithNullDoesNothing(): void
     {
-        $uploader = new UserPhotoUploader($this->directory);
+        $uploader = new PhotoUploader($this->directory, 'animal_');
 
         $uploader->remove(null);
 

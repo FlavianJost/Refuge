@@ -121,15 +121,6 @@ class Conversation
         return $this;
     }
 
-    public function removeMessage(Message $message): static
-    {
-        if ($this->messages->removeElement($message) && $message->getConversation() === $this) {
-            $message->setConversation(null);
-        }
-
-        return $this;
-    }
-
     public function getLastMessage(): ?Message
     {
         $last = $this->messages->last();

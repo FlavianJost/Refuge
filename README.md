@@ -75,12 +75,13 @@ php bin/console doctrine:migrations:migrate
 php bin/console doctrine:fixtures:load   # données de démonstration
 ```
 
-> Si `assets/vendor/` est déjà présent dans le dépôt, l'étape `importmap:install` n'est pas
-> indispensable.
+> `assets/vendor/` n'est pas versionné : l'étape `importmap:install` est donc nécessaire après
+> chaque clone.
 
 ## Configuration
 
-Les variables d'environnement sont définies dans les fichiers `.env` :
+Les variables d'environnement sont définies dans les fichiers `.env`, complétés par `.env.dev`
+et `.env.test` pour les valeurs propres à chaque environnement :
 
 | Variable | Description |
 | --- | --- |
@@ -163,7 +164,7 @@ de connexion, déconnexion).
 
 - Inscription : `GET|POST /inscription` (`app_register`).
 - Connexion : `GET|POST /login` (`app_login`).
-- Déconnexion : `POST /deconnexion` (`_logout_main`).
+- Déconnexion : `/deconnexion` (`_logout_main`).
 
 Les rôles sont hiérarchisés dans `config/packages/security.yaml` :
 
@@ -268,7 +269,7 @@ l'attribut `#[IsGranted]`.
   l'adresse email, d'ajouter ou remplacer une **photo de profil** (JPEG, PNG ou WebP, 4 Mo max) et de
   **changer le mot de passe** (le mot de passe actuel est exigé ; laissez les champs vides pour le
   conserver). Les photos sont stockées dans `public/uploads/users/` via le service
-  `App\Service\UserPhotoUploader`.
+  `App\Service\PhotoUploader`.
 - `GET|POST /animaux/{id}/adopter` (`app_adoption_request_new`) — dépôt d'une demande d'adoption.
 - `GET|POST /profil/messages` (`app_message_index`) — messagerie avec l'équipe du refuge.
 - `GET|POST /avis/nouveau` (`app_review_new`) et `POST /avis/{id}/supprimer` (`app_review_delete`) —
@@ -358,7 +359,7 @@ Espace réservé aux utilisateurs disposant du rôle `ROLE_VOLUNTEER` (et `ROLE_
   suppression d'une photo de la galerie.
 - `POST /gestion/animaux/{id}/supprimer` (`app_animal_manage_delete`) — suppression avec jeton CSRF.
 
-L'upload de photo est pris en charge par le service `App\Service\AnimalPhotoUploader` : les fichiers
+L'upload de photo est pris en charge par le service `App\Service\PhotoUploader` : les fichiers
 (JPEG, PNG ou WebP, 4 Mo max) sont enregistrés dans `public/uploads/animals/`. La photo principale
 précédente est supprimée lors d'un remplacement. Le formulaire permet également d'**ajouter
 plusieurs photos** à la galerie d'un animal en une seule fois ; chaque photo y est ensuite listée et
@@ -421,7 +422,7 @@ php bin/phpunit tests/Functional/ProfileTest.php
 
 - Les tests **unitaires** couvrent les énumérations (`Species`, `AnimalStatus`,
   `AdoptionRequestStatus`), les entités (`User`, `Animal`, `AdoptionRequest`) et les services
-  (`AnimalSlugger`, `AnimalPhotoUploader`, `UserPhotoUploader`, `AdoptionRequestProcessor`).
+  (`AnimalSlugger`, `PhotoUploader`, `AdoptionRequestProcessor`).
 - Les tests **fonctionnels** s'appuient sur le `KernelBrowser` de Symfony et vérifient la page
   d'accueil, le contrôle d'accès, l'authentification, l'inscription, le catalogue des animaux et le
   profil utilisateur. Chaque test s'exécute dans une transaction annulée à la fin

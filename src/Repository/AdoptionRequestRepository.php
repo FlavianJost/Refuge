@@ -33,14 +33,4 @@ class AdoptionRequestRepository extends ServiceEntityRepository
 
         return $qb->getQuery()->getResult();
     }
-
-    public function countPending(): int
-    {
-        return (int) $this->createQueryBuilder('r')
-            ->select('COUNT(r.id)')
-            ->andWhere('r.status = :status')
-            ->setParameter('status', AdoptionRequestStatus::PENDING)
-            ->getQuery()
-            ->getSingleScalarResult();
-    }
 }

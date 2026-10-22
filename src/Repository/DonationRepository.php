@@ -18,18 +18,6 @@ class DonationRepository extends ServiceEntityRepository
     }
 
     /**
-     * @return Donation[]
-     */
-    public function findLatest(int $limit = 10): array
-    {
-        return $this->createQueryBuilder('d')
-            ->orderBy('d.createdAt', 'DESC')
-            ->setMaxResults($limit)
-            ->getQuery()
-            ->getResult();
-    }
-
-    /**
      * Total des dons confirmés, en centimes d'euro.
      */
     public function getTotalAmount(): int

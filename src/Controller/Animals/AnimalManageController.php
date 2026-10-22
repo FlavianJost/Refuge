@@ -6,10 +6,11 @@ use App\Entity\Animal;
 use App\Entity\AnimalPhoto;
 use App\Form\Animal\AnimalType;
 use App\Repository\AnimalRepository;
-use App\Service\AnimalPhotoUploader;
 use App\Service\AnimalSlugger;
+use App\Service\PhotoUploader;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -29,7 +30,7 @@ class AnimalManageController extends AbstractController
     }
 
     #[Route('/nouveau', name: 'new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager, AnimalPhotoUploader $photoUploader, AnimalSlugger $animalSlugger): Response
+    public function new(Request $request, EntityManagerInterface $entityManager, #[Autowire(service: 'app.photo_uploader.animals')] PhotoUploader $photoUploader, AnimalSlugger $animalSlugger): Response
     {
         $animal = new Animal();
         $form = $this->createForm(AnimalType::class, $animal);
@@ -54,7 +55,7 @@ class AnimalManageController extends AbstractController
     }
 
     #[Route('/{id}/modifier', name: 'edit', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]
-    public function edit(Request $request, Animal $animal, EntityManagerInterface $entityManager, AnimalPhotoUploader $photoUploader, AnimalSlugger $animalSlugger): Response
+    public function edit(Request $request, Animal $animal, EntityManagerInterface $entityManager, #[Autowire(service: 'app.photo_uploader.animals')] PhotoUploader $photoUploader, AnimalSlugger $animalSlugger): Response
     {
         $form = $this->createForm(AnimalType::class, $animal);
         $form->handleRequest($request);
@@ -79,7 +80,7 @@ class AnimalManageController extends AbstractController
     }
 
     #[Route('/{id}/supprimer', name: 'delete', methods: ['POST'], requirements: ['id' => '\d+'])]
-    public function delete(Request $request, Animal $animal, EntityManagerInterface $entityManager, AnimalPhotoUploader $photoUploader): Response
+    public function delete(Request $request, Animal $animal, EntityManagerInterface $entityManager, #[Autowire(service: 'app.photo_uploader.animals')] PhotoUploader $photoUploader): Response
     {
         if ($this->isCsrfTokenValid('delete-animal-'.$animal->getId(), (string) $request->request->get('_token'))) {
             $photoUploader->remove($animal->getPhoto());
@@ -100,7 +101,7 @@ class AnimalManageController extends AbstractController
     }
 
     #[Route('/{id}/photos/{photo}/supprimer', name: 'delete_photo', methods: ['POST'], requirements: ['id' => '\d+', 'photo' => '\d+'])]
-    public function deletePhoto(Request $request, Animal $animal, AnimalPhoto $photo, EntityManagerInterface $entityManager, AnimalPhotoUploader $photoUploader): Response
+    public function deletePhoto(Request $request, Animal $animal, AnimalPhoto $photo, EntityManagerInterface $entityManager, #[Autowire(service: 'app.photo_uploader.animals')] PhotoUploader $photoUploader): Response
     {
         if ($photo->getAnimal() !== $animal) {
             throw $this->createNotFoundException('Cette photo n\'appartient pas à cet animal.');
@@ -119,7 +120,7 @@ class AnimalManageController extends AbstractController
         return $this->redirectToRoute('app_animal_manage_edit', ['id' => $animal->getId()]);
     }
 
-    private function handlePhoto(?UploadedFile $file, Animal $animal, AnimalPhotoUploader $uploader): void
+    private function handlePhoto(?UploadedFile $file, Animal $animal, PhotoUploader $uploader): void
     {
         if (null === $file) {
             return;
@@ -132,7 +133,7 @@ class AnimalManageController extends AbstractController
     /**
      * @param iterable<UploadedFile>|null $files
      */
-    private function handleGalleryPhotos(?iterable $files, Animal $animal, AnimalPhotoUploader $uploader): void
+    private function handleGalleryPhotos(?iterable $files, Animal $animal, PhotoUploader $uploader): void
     {
         if (null === $files) {
             return;

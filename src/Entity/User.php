@@ -294,25 +294,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TotpTwo
         return $this->reviews;
     }
 
-    public function addReview(Review $review): static
-    {
-        if (!$this->reviews->contains($review)) {
-            $this->reviews->add($review);
-            $review->setUser($this);
-        }
-
-        return $this;
-    }
-
-    public function removeReview(Review $review): static
-    {
-        if ($this->reviews->removeElement($review) && $review->getUser() === $this) {
-            $review->setUser(null);
-        }
-
-        return $this;
-    }
-
     /**
      * @return Collection<int, AdoptionRequest>
      */
@@ -353,15 +334,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TotpTwo
         if (!$this->loginRecords->contains($loginRecord)) {
             $this->loginRecords->add($loginRecord);
             $loginRecord->setUser($this);
-        }
-
-        return $this;
-    }
-
-    public function removeLoginRecord(LoginRecord $loginRecord): static
-    {
-        if ($this->loginRecords->removeElement($loginRecord) && $loginRecord->getUser() === $this) {
-            $loginRecord->setUser(null);
         }
 
         return $this;

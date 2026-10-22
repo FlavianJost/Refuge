@@ -18,14 +18,21 @@ services:
     # this creates a service per class whose id is the fully-qualified class name
     App\:
         resource: '../src/'
+        exclude:
+            - '../src/Service/PhotoUploader.php'
 
-    App\Service\AnimalPhotoUploader:
+    # un service par dossier d'upload, le préfixe servant à nommer les fichiers
+    app.photo_uploader.animals:
+        class: App\Service\PhotoUploader
         arguments:
             $targetDirectory: '%kernel.project_dir%/public/uploads/animals'
+            $prefix: 'animal_'
 
-    App\Service\UserPhotoUploader:
+    app.photo_uploader.users:
+        class: App\Service\PhotoUploader
         arguments:
             $targetDirectory: '%kernel.project_dir%/public/uploads/users'
+            $prefix: 'user_'
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

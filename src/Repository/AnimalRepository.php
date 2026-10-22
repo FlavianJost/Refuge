@@ -21,26 +21,6 @@ class AnimalRepository extends ServiceEntityRepository
     /**
      * @return Animal[]
      */
-    public function findAvailable(): array
-    {
-        return $this->findByFilters(AnimalStatus::AVAILABLE, null);
-    }
-
-    /**
-     * @return Animal[]
-     */
-    public function findLatest(int $limit): array
-    {
-        return $this->createQueryBuilder('a')
-            ->orderBy('a.createdAt', 'DESC')
-            ->setMaxResults($limit)
-            ->getQuery()
-            ->getResult();
-    }
-
-    /**
-     * @return Animal[]
-     */
     public function findByFilters(?AnimalStatus $status = null, ?Species $species = null): array
     {
         $qb = $this->createQueryBuilder('a')->orderBy('a.name', 'ASC');

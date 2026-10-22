@@ -64,11 +64,6 @@ class Donation
         return $this;
     }
 
-    public function getAmountInEuros(): float
-    {
-        return ($this->amount ?? 0) / 100;
-    }
-
     public function getDonorName(): ?string
     {
         return $this->donorName;
@@ -120,10 +115,5 @@ class Donation
     public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
-    }
-
-    public function __toString(): string
-    {
-        return number_format($this->getAmountInEuros(), 2, ',', ' ').' €';
     }
 }

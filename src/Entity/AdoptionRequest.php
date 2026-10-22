@@ -215,13 +215,6 @@ class AdoptionRequest
         return $this->updatedAt;
     }
 
-    public function setUpdatedAt(?\DateTimeImmutable $updatedAt): static
-    {
-        $this->updatedAt = $updatedAt;
-
-        return $this;
-    }
-
     public function touch(): static
     {
         $this->updatedAt = new \DateTimeImmutable();
@@ -247,15 +240,6 @@ class AdoptionRequest
         return $this;
     }
 
-    public function removeEvent(AdoptionRequestEvent $event): static
-    {
-        if ($this->events->removeElement($event) && $event->getAdoptionRequest() === $this) {
-            $event->setAdoptionRequest(null);
-        }
-
-        return $this;
-    }
-
     /**
      * @return Collection<int, VisitAppointment>
      */
@@ -269,15 +253,6 @@ class AdoptionRequest
         if (!$this->appointments->contains($appointment)) {
             $this->appointments->add($appointment);
             $appointment->setAdoptionRequest($this);
-        }
-
-        return $this;
-    }
-
-    public function removeAppointment(VisitAppointment $appointment): static
-    {
-        if ($this->appointments->removeElement($appointment) && $appointment->getAdoptionRequest() === $this) {
-            $appointment->setAdoptionRequest(null);
         }
 
         return $this;

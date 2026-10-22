@@ -12,10 +12,10 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 /**
- * Base class for functional tests requiring the database.
+ * Classe de base des tests fonctionnels qui utilisent la base de données.
  *
- * Every test runs inside a transaction that is rolled back afterwards so the
- * database is left untouched between tests.
+ * Chaque test se joue dans une transaction annulée à la fin, la base reste
+ * donc inchangée d'un test à l'autre.
  */
 abstract class DatabaseWebTestCase extends WebTestCase
 {
@@ -26,7 +26,7 @@ abstract class DatabaseWebTestCase extends WebTestCase
     {
         $this->client = static::createClient();
         $this->client->disableReboot();
-        // Stateless CSRF tokens are validated using the Origin/Referer headers.
+        // Les jetons CSRF sans état sont vérifiés à partir des en-têtes Origin/Referer.
         $this->client->setServerParameter('HTTP_ORIGIN', 'http://localhost');
 
         $registry = static::getContainer()->get('doctrine');

@@ -4,16 +4,17 @@ namespace App\Service;
 
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
-class UserPhotoUploader
+class PhotoUploader
 {
     public function __construct(
         private readonly string $targetDirectory,
+        private readonly string $prefix,
     ) {
     }
 
     public function upload(UploadedFile $file): string
     {
-        $filename = uniqid('user_', true).'.'.($file->guessExtension() ?? 'bin');
+        $filename = uniqid($this->prefix, true).'.'.($file->guessExtension() ?? 'bin');
         $file->move($this->targetDirectory, $filename);
 
         return $filename;

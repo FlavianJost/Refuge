@@ -6,9 +6,10 @@ use App\Entity\User;
 use App\Form\User\DeleteAccountType;
 use App\Form\User\ProfileType;
 use App\Repository\ConversationRepository;
-use App\Service\UserPhotoUploader;
+use App\Service\PhotoUploader;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -37,7 +38,7 @@ class ProfileController extends AbstractController
     public function edit(
         Request $request,
         EntityManagerInterface $entityManager,
-        UserPhotoUploader $photoUploader,
+        #[Autowire(service: 'app.photo_uploader.users')] PhotoUploader $photoUploader,
         UserPasswordHasherInterface $passwordHasher,
     ): Response {
         /** @var User $user */
@@ -70,7 +71,7 @@ class ProfileController extends AbstractController
     public function deleteAccount(
         Request $request,
         EntityManagerInterface $entityManager,
-        UserPhotoUploader $photoUploader,
+        #[Autowire(service: 'app.photo_uploader.users')] PhotoUploader $photoUploader,
         UserPasswordHasherInterface $passwordHasher,
     ): Response {
         /** @var User $user */
@@ -235,7 +236,7 @@ class ProfileController extends AbstractController
         $user->setPassword($passwordHasher->hashPassword($user, $newPassword));
     }
 
-    private function handlePhoto(?UploadedFile $file, User $user, UserPhotoUploader $uploader): void
+    private function handlePhoto(?UploadedFile $file, User $user, PhotoUploader $uploader): void
     {
         if (null === $file) {
             return;

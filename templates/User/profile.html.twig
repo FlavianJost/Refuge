@@ -17,10 +17,7 @@
         </div>
 
         {% set role_labels = {'ROLE_ADMIN': 'Administrateur', 'ROLE_VOLUNTEER': 'Bénévole', 'ROLE_USER': 'Utilisateur'} %}
-        {% set initials = ((user.firstName|default(''))|slice(0, 1) ~ (user.lastName|default(''))|slice(0, 1))|upper %}
-        {% if initials == '' %}
-            {% set initials = user.email|slice(0, 1)|upper %}
-        {% endif %}
+        {% set initials = user.initials %}
 
         <div class="row g-4">
             <div class="col-lg-5">

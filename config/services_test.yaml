@@ -1,10 +1,14 @@
 services:
-    # Store uploaded files in the cache directory during tests so the project
-    # tree (and the git working copy) is left untouched.
-    App\Service\AnimalPhotoUploader:
+    # Les fichiers envoyés pendant les tests sont stockés dans le cache afin de
+    # ne pas polluer le dossier public/uploads.
+    app.photo_uploader.animals:
+        class: App\Service\PhotoUploader
         arguments:
             $targetDirectory: '%kernel.cache_dir%/test-uploads/animals'
+            $prefix: 'animal_'
 
-    App\Service\UserPhotoUploader:
+    app.photo_uploader.users:
+        class: App\Service\PhotoUploader
         arguments:
             $targetDirectory: '%kernel.cache_dir%/test-uploads/users'
+            $prefix: 'user_'
